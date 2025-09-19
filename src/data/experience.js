@@ -1,45 +1,27 @@
 const experience = [
     {
-      title: 'Software Engineering Student',
+      title: 'CSSPE Information Sharing and Inventory System',
       company: 'Western Mindanao State University',
       location: 'Zamboanga City',
       period: '2023-2024',
-      description: 'Developed web applications and systems as part of software engineering coursework and capstone projects.',
-      responsibilities: [
-        'Developed a PHP-based system for the Physical Education Department to manage student records and activities',
-        'Created a Smart Store Manager - a decision support system for small business owners',
-        'Implemented database design and management for both projects',
-        'Collaborated with team members in agile development processes'
-      ],
-      skills: ['PHP', 'MySQL', 'HTML', 'CSS', 'JavaScript', 'System Design', 'Database Management']
+      description: 'Developed a web-based information sharing and inventory management system for the College of Science, Sports, Physical Education and Engineering.',
+      image: '/assets/projects/csspe-system.png',
+      technologies: ['PHP', 'MySQL', 'HTML', 'CSS', 'JavaScript', 'System Design'],
+      liveUrl: 'https://example.com/csspe-system',
+      repoUrl: 'https://github.com/username/csspe-system',
+      featured: true
     },
     {
-      title: 'Capstone Project Developer',
-      company: 'Smart Store Manager',
-      location: 'Western Mindanao State University',
-      period: '2024',
-      description: 'Developed a decision support system to help small business owners manage their inventory, sales, and business operations.',
-      responsibilities: [
-        'Designed and implemented the core system architecture',
-        'Created inventory management and sales tracking features',
-        'Developed data analytics and reporting modules',
-        'Implemented user-friendly interfaces for business owners'
-      ],
-      skills: ['PHP', 'MySQL', 'JavaScript', 'Data Analysis', 'System Design', 'User Interface Design']
-    },
-    {
-      title: 'PE Department System Developer',
+      title: 'PE Department Management System',
       company: 'WMSU PE Department',
       location: 'Western Mindanao State University',
       period: '2023',
       description: 'Created a web-based system to manage student records, activities, and schedules for the Physical Education Department.',
-      responsibilities: [
-        'Developed student record management features',
-        'Implemented activity scheduling and tracking system',
-        'Created admin and user interfaces',
-        'Designed and maintained the database structure'
-      ],
-      skills: ['PHP', 'MySQL', 'Web Development', 'Database Design', 'System Administration']
+      image: '/assets/projects/pe-system.png',
+      technologies: ['PHP', 'MySQL', 'Web Development', 'Database Design'],
+      liveUrl: 'https://example.com/pe-system',
+      repoUrl: 'https://github.com/username/pe-system',
+      featured: false
     }
   ];
   

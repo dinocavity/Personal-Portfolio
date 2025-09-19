@@ -1,0 +1,21 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dinosaur head silhouette -->
+  <path d="M12 45 Q8 40 8 32 Q8 20 16 12 Q24 8 32 8 Q40 8 48 12 Q56 20 56 32 Q56 36 54 40 L50 38 Q52 35 52 32 Q52 22 44 16 Q36 12 32 12 Q28 12 20 16 Q12 22 12 32 Q12 38 14 42 L12 45 Z" fill="#3b82f6"/>
+
+  <!-- Dino crest/horn -->
+  <path d="M32 8 Q28 4 24 6 Q20 8 18 12 L16 12 Q24 8 32 8" fill="#2563eb"/>
+
+  <!-- Eye -->
+  <circle cx="24" cy="24" r="3" fill="#ffffff"/>
+  <circle cx="25" cy="23" r="1.5" fill="#000000"/>
+
+  <!-- Nostril -->
+  <ellipse cx="16" cy="30" rx="1.5" ry="1" fill="#2563eb"/>
+
+  <!-- Mouth line -->
+  <path d="M12 35 Q16 38 20 36" stroke="#2563eb" stroke-width="1.5" fill="none"/>
+
+  <!-- Small teeth -->
+  <polygon points="14,36 15,38 16,36" fill="#ffffff"/>
+  <polygon points="17,37 18,39 19,37" fill="#ffffff"/>
+</svg>

@@ -20,7 +20,7 @@ const Experience = () => {
   };
   
   return (
-    <section id="experience" className="py-20 bg-gray-50">
+    <section id="experience" className="py-20">
       <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-16">
           <h2 className="section-title text-center mx-auto after:left-1/2 after:-translate-x-1/2">Experience</h2>

@@ -1,8 +1,20 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useCallback, useMemo, memo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import emailjs from 'emailjs-com';
 
-const Contact = () => {
+// EmailJS configuration - moved outside component to prevent re-initialization
+const EMAILJS_CONFIG = {
+  serviceId: 'service_qlgjlow',
+  templateId: 'template_jg130vp',
+  userId: 'lvjVF1NaK6SHmRSsD'
+};
+
+// Initialize EmailJS once when module loads
+if (typeof window !== 'undefined') {
+  emailjs.init(EMAILJS_CONFIG.userId);
+}
+
+const Contact = memo(() => {
   const ref = useRef(null);
   const formRef = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -19,82 +31,79 @@ const Contact = () => {
   const [submitError, setSubmitError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   
-  // Initialize EmailJS once the component mounts
-  useEffect(() => {
-    emailjs.init("lvjVF1NaK6SHmRSsD"); // Replace with your EmailJS User ID
-  }, []);
   
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value
     }));
-  };
+  }, []);
   
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitSuccess(false);
     setSubmitError(false);
-    
-    // Prepare template parameters for EmailJS
-    const templateParams = {
-      from_name: formData.name,
-      from_email: formData.email,
-      subject: formData.subject,
-      message: formData.message,
-      to_name: 'Dion Marquez',
-      reply_to: formData.email
-    };
-    
-    // Send email using EmailJS
-    emailjs.send(
-      'service_qlgjlow', // Replace with your EmailJS Service ID
-      'template_jg130vp', // Replace with your EmailJS Template ID
-      templateParams
-    )
-      .then((response) => {
-        console.log('Email sent successfully:', response);
-        setIsSubmitting(false);
-        setSubmitSuccess(true);
-        
-        // Reset form after success
-        setFormData({
-          name: '',
-          email: '',
-          subject: '',
-          message: ''
-        });
-        
-        // Reset success message after a few seconds
-        setTimeout(() => {
-          setSubmitSuccess(false);
-        }, 5000);
-      })
-      .catch((error) => {
-        console.error('Error sending email:', error);
-        setIsSubmitting(false);
-        setSubmitError(true);
-        setErrorMessage('There was an error sending your message. Please try again later.');
+    setErrorMessage('');
+
+    try {
+      // Prepare template parameters for EmailJS
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        to_name: 'Dion Marquez',
+        reply_to: formData.email
+      };
+
+      // Send email using EmailJS with optimized configuration
+      await emailjs.send(
+        EMAILJS_CONFIG.serviceId,
+        EMAILJS_CONFIG.templateId,
+        templateParams
+      );
+
+      // Success handling
+      setSubmitSuccess(true);
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
       });
-  };
+
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => setSubmitSuccess(false), 5000);
+
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      setSubmitError(true);
+      setErrorMessage(
+        error.text ||
+        'There was an error sending your message. Please try again later.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData]);
   
-  const fadeIn = {
+  const fadeIn = useMemo(() => ({
     hidden: { opacity: 0, y: 30 },
     visible: (custom) => ({
       opacity: 1,
       y: 0,
-      transition: { 
+      transition: {
         delay: custom * 0.2,
         duration: 0.6,
         ease: 'easeOut'
       }
     })
-  };
+  }), []);
   
   return (
-    <section id="contact" className="py-20 bg-white relative overflow-hidden">
+    <section id="contact" className="py-20 relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full -translate-x-1/2 -translate-y-1/2 opacity-70"></div>
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-tl from-blue-100 to-blue-50 rounded-full translate-x-1/3 translate-y-1/3 opacity-70"></div>
@@ -102,7 +111,7 @@ const Contact = () => {
       <div className="container mx-auto px-4 md:px-8 relative z-10">
         <div className="text-center mb-16">
           <h2 className="section-title text-center mx-auto after:left-1/2 after:-translate-x-1/2">Contact Me</h2>
-          <p className="text-gray-600 max-w-3xl mx-auto">Let's get in touch</p>
+          <p className="text-gray-600 max-w-3xl mx-auto">Ready to bring your ideas to life? Let's start a conversation</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto" ref={ref}>
@@ -113,12 +122,12 @@ const Contact = () => {
                 initial="hidden"
                 animate="visible"
                 variants={fadeIn}
-                className="relative z-10"
+                className="relative z-10 h-fit"
               >
                 <h3 className="text-2xl font-bold font-heading mb-6">Get In Touch</h3>
                 <p className="text-gray-700 mb-8">
-                  Have a project in mind or want to discuss a potential collaboration? 
-                  Feel free to reach out to me through this contact form or directly via email or phone.
+                  I'm always interested in new opportunities and collaborations. Whether you have a project idea,
+                  need technical consultation, or want to discuss potential partnerships, I'd love to hear from you.
                 </p>
                 
                 <div className="space-y-8">
@@ -172,7 +181,7 @@ const Contact = () => {
                 initial="hidden"
                 animate="visible"
                 variants={fadeIn}
-                className="relative z-10"
+                className="relative z-10 h-fit"
               >
                 <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300 border border-gray-100">
                   <h3 className="text-2xl font-bold font-heading mb-6">Send Me a Message</h3>
@@ -213,11 +222,6 @@ const Contact = () => {
                         Your Name
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                        </div>
                         <input
                           type="text"
                           id="name"
@@ -225,8 +229,8 @@ const Contact = () => {
                           value={formData.name}
                           onChange={handleChange}
                           required
-                          className="input-field pl-10 w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300"
-                          placeholder="    John Doe"
+                          className="input-field w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300"
+                          placeholder="Your full name"
                         />
                       </div>
                     </div>
@@ -236,11 +240,6 @@ const Contact = () => {
                         Your Email
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                        </div>
                         <input
                           type="email"
                           id="email"
@@ -248,8 +247,8 @@ const Contact = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="input-field pl-10 w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300"
-                          placeholder="     john.doe@example.com"
+                          className="input-field w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300"
+                          placeholder="your.email@company.com"
                         />
                       </div>
                     </div>
@@ -259,11 +258,6 @@ const Contact = () => {
                         Subject
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                          </svg>
-                        </div>
                         <input
                           type="text"
                           id="subject"
@@ -271,8 +265,8 @@ const Contact = () => {
                           value={formData.subject}
                           onChange={handleChange}
                           required
-                          className="input-field pl-10 w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300"
-                          placeholder="       Project Inquiry"
+                          className="input-field w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300"
+                          placeholder="What would you like to discuss?"
                         />
                       </div>
                     </div>
@@ -282,11 +276,6 @@ const Contact = () => {
                         Your Message
                       </label>
                       <div className="relative">
-                        <div className="absolute top-3 left-3 flex items-start pointer-events-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                          </svg>
-                        </div>
                         <textarea
                           id="message"
                           name="message"
@@ -294,8 +283,8 @@ const Contact = () => {
                           onChange={handleChange}
                           required
                           rows="5"
-                          className="input-field pt-2 pl-10 w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300 resize-none"
-                          placeholder="      Hello, I would like to talk about..."
+                          className="input-field w-full focus:ring-2 focus:ring-blue-900/20 transition-all duration-300 resize-none"
+                          placeholder="Please describe your project or inquiry in detail..."
                         ></textarea>
                       </div>
                     </div>
@@ -332,6 +321,8 @@ const Contact = () => {
       </div>
     </section>
   );
-};
+});
+
+Contact.displayName = 'Contact';
 
 export default Contact;

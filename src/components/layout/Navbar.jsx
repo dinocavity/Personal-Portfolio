@@ -1,57 +1,55 @@
-import { useState, useEffect } from 'react';
+import { useState, memo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import useScrollManager from '../../hooks/useScrollManager';
 
-const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
+const Navbar = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('hero');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-      
-      // Update active section based on scroll position
-      const sections = document.querySelectorAll('section[id]');
-      sections.forEach(section => {
-        const sectionTop = section.offsetTop - 100;
-        const sectionHeight = section.offsetHeight;
-        const sectionId = section.getAttribute('id');
-        
-        if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
-          setActiveSection(sectionId);
-        }
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const { isScrolled, activeSection, scrollToSection, scrollY } = useScrollManager();
+  const [logoText, setLogoText] = useState('D.');
 
   const navLinks = [
     { title: 'Home', href: '#hero' },
     { title: 'About', href: '#about' },
-    { title: 'Experience', href: '#experience' },
-    { title: 'Projects', href: '#projects' },
+    { title: 'Work', href: '#projects' },
     { title: 'Blog', href: '#blog' },
     { title: 'Contact', href: '#contact' }
   ];
   
-  const handleNavClick = (e, href) => {
+  const handleNavClick = useCallback((e, href) => {
     e.preventDefault();
-    const element = document.querySelector(href);
-    if (element) {
-      window.scrollTo({
-        top: element.offsetTop - 80,
-        behavior: 'smooth'
-      });
-    }
+    const sectionId = href.substring(1); // Remove the '#'
+    scrollToSection(sectionId);
     setMobileMenuOpen(false);
-  };
+  }, [scrollToSection]);
+
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen(prev => !prev);
+  }, []);
+
+  useEffect(() => {
+    const fullName = 'Dion Cedrick Marquez';
+
+    // Calculate scroll-based progress using more scroll distance
+    const typeStartScroll = 100; // Start typing after 100px
+    const typeEndScroll = 1500;  // Finish typing at 1500px (much longer range)
+
+    console.log('Scroll Y:', scrollY, 'ActiveSection:', activeSection);
+
+    if (activeSection === 'hero' || scrollY < typeStartScroll) {
+      // At hero section or barely scrolled - show D.
+      setLogoText('D.');
+    } else if (scrollY >= typeStartScroll && scrollY < typeEndScroll) {
+      // Scrolling through - progressively type name (much slower)
+      const nameProgress = (scrollY - typeStartScroll) / (typeEndScroll - typeStartScroll);
+      const charIndex = Math.floor(nameProgress * fullName.length);
+      const currentText = fullName.slice(0, Math.max(1, charIndex));
+      setLogoText(currentText || 'D');
+    } else {
+      // Fully scrolled - show DCM
+      setLogoText('DCM');
+    }
+  }, [scrollY, activeSection]);
 
   return (
     <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
@@ -65,32 +63,34 @@ const Navbar = () => {
             transition={{ duration: 0.5 }}
           >
             <Link to="/" className="text-2xl font-bold font-heading text-gradient">
-              Dion Marquez
+              <span className="inline-block min-w-[12rem]">
+                {logoText}
+              </span>
             </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:block">
-            <ul className="flex space-x-8">
+            <ul className="flex space-x-8 items-center">
               {navLinks.map((link, index) => (
-                <motion.li 
+                <motion.li
                   key={index}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <a 
+                  <a
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
                     className={`relative font-medium transition-colors ${
-                      activeSection === link.href.substring(1) 
-                        ? 'text-primary-color' 
+                      activeSection === link.href.substring(1)
+                        ? 'text-primary-color'
                         : 'text-gray-700 hover:text-primary-light'
                     }`}
                   >
                     {link.title}
                     {activeSection === link.href.substring(1) && (
-                      <motion.span 
+                      <motion.span
                         className="absolute -bottom-1 left-0 h-0.5 bg-primary-light"
                         initial={{ width: 0 }}
                         animate={{ width: '100%' }}
@@ -100,13 +100,30 @@ const Navbar = () => {
                   </a>
                 </motion.li>
               ))}
+
+              {/* Resume Button - appears after hero section */}
+              {activeSection !== 'hero' && (
+                <motion.li
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <a
+                    href="/marquezcv.pdf"
+                    download
+                    className="btn-primary text-sm px-4 py-2"
+                  >
+                    Resume
+                  </a>
+                </motion.li>
+              )}
             </ul>
           </nav>
 
           {/* Mobile Menu Button */}
-          <motion.button 
+          <motion.button
             className="md:hidden text-gray-700 z-50"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={toggleMobileMenu}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -145,18 +162,18 @@ const Navbar = () => {
           >
             <ul className="space-y-4">
               {navLinks.map((link, index) => (
-                <motion.li 
+                <motion.li
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <a 
+                  <a
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
                     className={`block py-2 font-medium ${
-                      activeSection === link.href.substring(1) 
-                        ? 'text-primary-color' 
+                      activeSection === link.href.substring(1)
+                        ? 'text-primary-color'
                         : 'text-gray-700'
                     }`}
                   >
@@ -164,12 +181,31 @@ const Navbar = () => {
                   </a>
                 </motion.li>
               ))}
+
+              {/* Resume Button - mobile menu */}
+              {activeSection !== 'hero' && (
+                <motion.li
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: navLinks.length * 0.1 }}
+                >
+                  <a
+                    href="/marquezcv.pdf"
+                    download
+                    className="btn-primary inline-block text-sm px-4 py-2 mt-2"
+                  >
+                    Resume
+                  </a>
+                </motion.li>
+              )}
             </ul>
           </motion.div>
         )}
       </AnimatePresence>
     </header>
   );
-};
+});
+
+Navbar.displayName = 'Navbar';
 
 export default Navbar;

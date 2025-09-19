@@ -1,42 +1,43 @@
-import { Routes, Route } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import Navbar from './components/layout/Navbar'
-import Footer from './components/layout/Footer'
-import ProgressBar from './components/layout/ProgressBar'
-import SocialSidebar from './components/layout/SocialSidebar'
-import VuurGuide from './components/ui/VuurGuide'
-import Home from './pages/Home'
-import BlogDetail from './pages/BlogDetail'
+import { Routes, Route } from 'react-router-dom';
+import { memo, Suspense, lazy } from 'react';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import ProgressBar from './components/layout/ProgressBar';
+import SocialSidebar from './components/layout/SocialSidebar';
+import ParticleBackground from './components/ui/ParticleBackground';
+import LoadingSpinner from './components/ui/LoadingSpinner';
+import Home from './pages/Home';
 
-function App() {
-  const [showVuur, setShowVuur] = useState(false);
-  
-  useEffect(() => {
-    // Show Vuur after 5 seconds
-    const timer = setTimeout(() => {
-      setShowVuur(true);
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+// Lazy load BlogDetail for better code splitting
+const BlogDetail = lazy(() => import('./pages/BlogDetail'));
+
+const App = memo(() => {
 
   return (
     <div className="relative bg-gray-50 min-h-screen">
+      <ParticleBackground />
       <Navbar />
       <ProgressBar />
       <SocialSidebar />
-      {showVuur && <VuurGuide />}
-      
-      <main className="pt-16 pb-24">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/blog/:id" element={<BlogDetail />} />
-        </Routes>
+
+      <main className="pt-16 pb-24 relative z-10">
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <LoadingSpinner size="large" />
+          </div>
+        }>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
+          </Routes>
+        </Suspense>
       </main>
       
       <Footer />
     </div>
   )
-}
+});
 
-export default App
+App.displayName = 'App';
+
+export default App;

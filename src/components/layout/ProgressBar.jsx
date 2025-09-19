@@ -1,25 +1,16 @@
-import { useState, useEffect } from 'react';
+import { memo } from 'react';
+import useScrollManager from '../../hooks/useScrollManager';
 
-const ProgressBar = () => {
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalScroll = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const currentScroll = document.documentElement.scrollTop;
-      const scrollPercentage = (currentScroll / totalScroll) * 100;
-      setScrollProgress(scrollPercentage);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+const ProgressBar = memo(() => {
+  const { progress } = useScrollManager();
 
   return (
     <div className="progress-container">
-      <div className="progress-bar" style={{ width: `${scrollProgress}%` }}></div>
+      <div className="progress-bar" style={{ width: `${progress}%` }}></div>
     </div>
   );
-};
+});
+
+ProgressBar.displayName = 'ProgressBar';
 
 export default ProgressBar;
