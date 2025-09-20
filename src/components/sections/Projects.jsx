@@ -1,11 +1,25 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
+import useScrollManager from '../../hooks/useScrollManager';
 import projects from '../../data/projects';
 import experience from '../../data/experience';
 
 const Projects = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { activeSection } = useScrollManager();
+
+  // Get dynamic colors based on active section
+  const colors = useMemo(() => {
+    const colorMap = {
+      hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
+      about: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },     // purple: dark → medium → light
+      projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
+      blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
+      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
+    };
+    return colorMap[activeSection] || colorMap.hero;
+  }, [activeSection]);
 
   // Combine projects and experience into one array
   const allItems = [
@@ -13,13 +27,37 @@ const Projects = () => {
     ...experience.map(item => ({ ...item, type: 'experience' }))
   ];
 
-  // Pagination state
+  // Pagination state with equal distribution
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const totalPages = Math.ceil(allItems.length / itemsPerPage);
-  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
-  const indexOfLastItem = indexOfFirstItem + itemsPerPage;
-  const currentItems = allItems.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Distribute items equally across all pages
+  const getEquallyDistributedItems = () => {
+    const itemsPerLastPage = allItems.length % itemsPerPage;
+    const shouldRedistribute = itemsPerLastPage > 0 && itemsPerLastPage < 3 && totalPages > 1;
+
+    if (shouldRedistribute) {
+      // Calculate new distribution to balance pages
+      const adjustedItemsPerPage = Math.floor(allItems.length / totalPages);
+      const extraItems = allItems.length % totalPages;
+
+      let startIndex = 0;
+      for (let i = 1; i < currentPage; i++) {
+        startIndex += adjustedItemsPerPage + (i <= extraItems ? 1 : 0);
+      }
+
+      const currentPageItems = adjustedItemsPerPage + (currentPage <= extraItems ? 1 : 0);
+      return allItems.slice(startIndex, startIndex + currentPageItems);
+    } else {
+      // Use standard pagination
+      const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+      const indexOfLastItem = indexOfFirstItem + itemsPerPage;
+      return allItems.slice(indexOfFirstItem, indexOfLastItem);
+    }
+  };
+
+  const currentItems = getEquallyDistributedItems();
 
   // Handle page changes
   const nextPage = () => {
@@ -65,8 +103,8 @@ const Projects = () => {
     <section id="projects" className="py-20">
       <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-16">
-          <h2 className="section-title text-center mx-auto after:left-1/2 after:-translate-x-1/2">Work & Projects</h2>
-          <p className="text-gray-600 max-w-3xl mx-auto">My development journey and portfolio</p>
+          <h2 className="section-title text-center mx-auto after:left-1/2 after:-translate-x-1/2">My Work</h2>
+          <p className="text-gray-600 max-w-3xl mx-auto">Showcasing projects and experiences that define my development journey</p>
         </div>
 
         
@@ -79,32 +117,96 @@ const Projects = () => {
                 initial="hidden"
                 animate="visible"
                 exit={{ opacity: 0 }}
-                className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4 auto-rows-[200px]"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5 xl:gap-6 auto-rows-[160px] sm:auto-rows-[180px] md:auto-rows-[200px] lg:auto-rows-[220px] xl:auto-rows-[240px]"
               >
                 {currentItems.map((item, index) => {
                 // Define bento box sizes with better grid layout
                 let gridClass = "";
-                switch(index % 6) {
-                  case 0: // First item - Large featured
-                    gridClass = "md:col-span-2 md:row-span-2 lg:col-span-3 lg:row-span-2";
+                // True bento box layout that maintains bento aesthetic on ALL screen sizes
+                const itemsOnCurrentPage = currentItems.length;
+                const baseIndex = index % 6;
+
+                // Mobile-first bento patterns (2-col base ensures bento look even on small screens)
+                switch(baseIndex) {
+                  case 0: // Featured hero - always gets prominence
+                    gridClass = "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2 md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2 xl:col-span-3 xl:row-span-2";
                     break;
-                  case 1: // Second item - Medium wide
-                    gridClass = "md:col-span-2 md:row-span-1 lg:col-span-3 lg:row-span-1";
+                  case 1: // Secondary wide
+                    gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-2 xl:row-span-1";
                     break;
-                  case 2: // Third item - Small square
-                    gridClass = "md:col-span-1 md:row-span-1 lg:col-span-2 lg:row-span-1";
+                  case 2: // Vertical accent - key to bento aesthetic
+                    gridClass = "col-span-1 row-span-2 sm:col-span-1 sm:row-span-2 md:col-span-1 md:row-span-2 lg:col-span-1 lg:row-span-2 xl:col-span-1 xl:row-span-2";
                     break;
-                  case 3: // Fourth item - Small square
-                    gridClass = "md:col-span-1 md:row-span-1 lg:col-span-2 lg:row-span-1";
+                  case 3: // Balancing square
+                    gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-1 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-2 xl:row-span-1";
                     break;
-                  case 4: // Fifth item - Wide
-                    gridClass = "md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1";
+                  case 4: // Wide emphasis
+                    gridClass = "col-span-2 row-span-1 sm:col-span-2 sm:row-span-1 md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-2 xl:row-span-1";
                     break;
-                  case 5: // Sixth item - Medium
-                    gridClass = "md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1";
+                  case 5: // Finishing touch
+                    gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-1 lg:col-span-1 lg:row-span-1 xl:col-span-2 xl:row-span-1";
                     break;
                   default:
-                    gridClass = "md:col-span-1 md:row-span-1";
+                    gridClass = "col-span-1 row-span-1";
+                }
+
+                // Enhanced sparse layouts that maintain bento feel
+                if (itemsOnCurrentPage === 1) {
+                  gridClass = "col-span-2 row-span-2 sm:col-span-3 sm:row-span-2 md:col-span-4 md:row-span-2 lg:col-span-5 lg:row-span-2 xl:col-span-6 xl:row-span-2";
+                } else if (itemsOnCurrentPage === 2) {
+                  switch(index) {
+                    case 0:
+                      gridClass = "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2 md:col-span-3 md:row-span-2 lg:col-span-3 lg:row-span-2 xl:col-span-4 xl:row-span-2";
+                      break;
+                    case 1:
+                      gridClass = "col-span-1 row-span-2 sm:col-span-1 sm:row-span-2 md:col-span-1 md:row-span-2 lg:col-span-2 lg:row-span-2 xl:col-span-2 xl:row-span-2";
+                      break;
+                  }
+                } else if (itemsOnCurrentPage === 3) {
+                  switch(index) {
+                    case 0:
+                      gridClass = "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2 md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2 xl:col-span-3 xl:row-span-2";
+                      break;
+                    case 1:
+                      gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-2 xl:row-span-1";
+                      break;
+                    case 2:
+                      gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-1 lg:col-span-1 lg:row-span-1 xl:col-span-1 xl:row-span-1";
+                      break;
+                  }
+                } else if (itemsOnCurrentPage === 4) {
+                  switch(index) {
+                    case 0:
+                      gridClass = "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2 md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2 xl:col-span-3 xl:row-span-2";
+                      break;
+                    case 1:
+                      gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-2 xl:row-span-1";
+                      break;
+                    case 2:
+                      gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 xl:col-span-1 xl:row-span-1";
+                      break;
+                    case 3:
+                      gridClass = "col-span-2 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-1 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-2 xl:row-span-1";
+                      break;
+                  }
+                } else if (itemsOnCurrentPage === 5) {
+                  switch(index) {
+                    case 0:
+                      gridClass = "col-span-2 row-span-2 sm:col-span-2 sm:row-span-2 md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2 xl:col-span-2 xl:row-span-2";
+                      break;
+                    case 1:
+                      gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-2 xl:row-span-1";
+                      break;
+                    case 2:
+                      gridClass = "col-span-1 row-span-2 sm:col-span-1 sm:row-span-2 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 xl:col-span-2 xl:row-span-1";
+                      break;
+                    case 3:
+                      gridClass = "col-span-2 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-1 md:row-span-1 lg:col-span-2 lg:row-span-1 xl:col-span-1 xl:row-span-1";
+                      break;
+                    case 4:
+                      gridClass = "col-span-1 row-span-1 sm:col-span-1 sm:row-span-1 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 xl:col-span-1 xl:row-span-1";
+                      break;
+                  }
                 }
 
                 const isProject = item.type === 'project';
@@ -114,7 +216,7 @@ const Projects = () => {
                   <motion.div
                     key={itemKey}
                     variants={item}
-                    className={`group relative rounded-2xl overflow-hidden bg-white/80 backdrop-blur-sm border border-gray-200/50 hover:border-blue-200 transition-all duration-500 hover:shadow-xl hover:shadow-blue-100/20 ${gridClass}`}
+                    className={`group relative rounded-3xl overflow-hidden bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border border-gray-200/30 hover:border-white/60 transition-all duration-700 hover:shadow-2xl hover:shadow-gray-500/10 hover:scale-[1.02] hover:-translate-y-1 ${gridClass}`}
                   >
                     {/* Background Image or Fallback */}
                     <div className="absolute inset-0">
@@ -240,8 +342,23 @@ const Projects = () => {
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
                     currentPage === 1
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-blue-900 border border-blue-900 hover:bg-blue-50 hover:shadow-md'
+                      : 'bg-white border hover:shadow-md'
                   }`}
+                  style={currentPage !== 1 ? {
+                    color: colors.primary,
+                    borderColor: colors.primary,
+                    '--hover-bg': colors.accent + '20' // 20% opacity
+                  } : {}}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== 1) {
+                      e.target.style.backgroundColor = colors.accent + '20'; // 20% opacity
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== 1) {
+                      e.target.style.backgroundColor = 'white';
+                    }
+                  }}
                   aria-label="Previous page"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -254,11 +371,28 @@ const Projects = () => {
                     <button
                       key={i}
                       onClick={() => goToPage(i + 1)}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        currentPage === i + 1
-                          ? 'bg-blue-900 text-white shadow-md'
-                          : 'bg-white text-blue-900 border border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:shadow-md'
-                      }`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border shadow-md`}
+                      style={currentPage === i + 1 ? {
+                        backgroundColor: colors.primary,
+                        color: 'white',
+                        borderColor: colors.primary
+                      } : {
+                        backgroundColor: 'white',
+                        color: colors.primary,
+                        borderColor: '#e5e7eb' // gray-200
+                      }}
+                      onMouseEnter={(e) => {
+                        if (currentPage !== i + 1) {
+                          e.target.style.backgroundColor = colors.accent + '20'; // 20% opacity
+                          e.target.style.borderColor = colors.light;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (currentPage !== i + 1) {
+                          e.target.style.backgroundColor = 'white';
+                          e.target.style.borderColor = '#e5e7eb'; // gray-200
+                        }
+                      }}
                       aria-label={`Page ${i + 1}`}
                     >
                       {i + 1}
@@ -278,8 +412,23 @@ const Projects = () => {
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
                     currentPage === totalPages
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-blue-900 border border-blue-900 hover:bg-blue-50 hover:shadow-md'
+                      : 'bg-white border hover:shadow-md'
                   }`}
+                  style={currentPage !== totalPages ? {
+                    color: colors.primary,
+                    borderColor: colors.primary,
+                    '--hover-bg': colors.accent + '20' // 20% opacity
+                  } : {}}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.target.style.backgroundColor = colors.accent + '20'; // 20% opacity
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.target.style.backgroundColor = 'white';
+                    }
+                  }}
                   aria-label="Next page"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

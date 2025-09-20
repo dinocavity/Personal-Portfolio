@@ -11,12 +11,11 @@ const Navbar = memo(() => {
   // Both dark and light colors follow the particle color theme
   const getGradientColors = (activeSection) => {
     const colors = {
-      hero: { primary: '#1e3a8a', accent: '#3b82f6' },      // blue: dark → light
-      about: { primary: '#581c87', accent: '#9333ea' },     // purple: dark → light
-      projects: { primary: '#92400e', accent: '#f59e0b' },  // amber: dark → light
-      blog: { primary: '#991b1b', accent: '#ef4444' },      // red: dark → light
-      contact: { primary: '#065f46', accent: '#10b981' },   // emerald: dark → light
-      footer: { primary: '#065f46', accent: '#10b981' }     // emerald: dark → light
+      hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
+      about: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },     // purple: dark → medium → light
+      projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
+      blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
+      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
     };
     return colors[activeSection] || colors.hero;
   };
@@ -25,8 +24,7 @@ const Navbar = memo(() => {
     { title: 'Home', href: '#hero' },
     { title: 'About', href: '#about' },
     { title: 'Work', href: '#projects' },
-    { title: 'Blog', href: '#blog' },
-    { title: 'Contact', href: '#contact' }
+    { title: 'Blog', href: '#blog' }
   ];
   
   const handleNavClick = useCallback((e, href) => {
@@ -78,7 +76,7 @@ const Navbar = memo(() => {
       // Show full name for middle sections
       return fullName;
     } else {
-      // Show DCM for contact and footer sections
+      // Show DCM for footer section
       return 'DCM';
     }
   }, [activeSection, scrollY]);
@@ -109,29 +107,6 @@ const Navbar = memo(() => {
                 </span>
               </Link>
 
-              {/* Resume button - show when displaying full name, hide when DCM */}
-              <AnimatePresence>
-                {logoText === 'Dion Cedrick Marquez' && (
-                  <motion.a
-                    href="/marquezcv.pdf"
-                    download
-                    className="text-xs underline decoration-1 hover:no-underline transition-all duration-300"
-                    style={{
-                      color: getGradientColors(activeSection).accent,
-                      opacity: 0.7,
-                      fontSize: '10px',
-                      marginLeft: '16px',
-                      textUnderlineOffset: '2px'
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.7 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Resume
-                  </motion.a>
-                )}
-              </AnimatePresence>
             </div>
           </motion.div>
 
@@ -167,22 +142,6 @@ const Navbar = memo(() => {
                 </motion.li>
               ))}
 
-              {/* Resume Button - appears after hero section, but only when not showing full name next to logo */}
-              {activeSection !== 'hero' && logoText !== 'Dion Cedrick Marquez' && (
-                <motion.li
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <a
-                    href="/marquezcv.pdf"
-                    download
-                    className="btn-primary text-sm px-4 py-2"
-                  >
-                    Resume
-                  </a>
-                </motion.li>
-              )}
             </ul>
           </nav>
 
@@ -219,8 +178,8 @@ const Navbar = memo(() => {
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div 
-            className="md:hidden glass py-6 px-6 absolute top-full left-0 w-full"
+          <motion.div
+            className="md:hidden glass py-6 px-6 absolute top-full left-0 w-full z-50"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -248,22 +207,6 @@ const Navbar = memo(() => {
                 </motion.li>
               ))}
 
-              {/* Resume Button - mobile menu */}
-              {activeSection !== 'hero' && logoText !== 'Dion Cedrick Marquez' && (
-                <motion.li
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: navLinks.length * 0.1 }}
-                >
-                  <a
-                    href="/marquezcv.pdf"
-                    download
-                    className="btn-primary inline-block text-sm px-4 py-2 mt-2"
-                  >
-                    Resume
-                  </a>
-                </motion.li>
-              )}
             </ul>
           </motion.div>
         )}
