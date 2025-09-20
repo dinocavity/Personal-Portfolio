@@ -1,4 +1,4 @@
-import { useState, memo, useCallback, useEffect } from 'react';
+import { useState, memo, useCallback, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import useScrollManager from '../../hooks/useScrollManager';
@@ -6,7 +6,20 @@ import useScrollManager from '../../hooks/useScrollManager';
 const Navbar = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isScrolled, activeSection, scrollToSection, scrollY } = useScrollManager();
-  const [logoText, setLogoText] = useState('D.');
+
+  // Get CSS custom properties for gradient colors to match particles exactly
+  // Both dark and light colors follow the particle color theme
+  const getGradientColors = (activeSection) => {
+    const colors = {
+      hero: { primary: '#1e3a8a', accent: '#3b82f6' },      // blue: dark → light
+      about: { primary: '#581c87', accent: '#9333ea' },     // purple: dark → light
+      projects: { primary: '#92400e', accent: '#f59e0b' },  // amber: dark → light
+      blog: { primary: '#991b1b', accent: '#ef4444' },      // red: dark → light
+      contact: { primary: '#065f46', accent: '#10b981' },   // emerald: dark → light
+      footer: { primary: '#065f46', accent: '#10b981' }     // emerald: dark → light
+    };
+    return colors[activeSection] || colors.hero;
+  };
 
   const navLinks = [
     { title: 'Home', href: '#hero' },
@@ -27,29 +40,48 @@ const Navbar = memo(() => {
     setMobileMenuOpen(prev => !prev);
   }, []);
 
-  useEffect(() => {
+  const handleLogoClick = useCallback((e) => {
+    e.preventDefault();
+    scrollToSection('hero');
+  }, [scrollToSection]);
+
+  // Calculate logo text using useMemo instead of useEffect for better performance
+  const logoText = useMemo(() => {
     const fullName = 'Dion Cedrick Marquez';
 
-    // Calculate scroll-based progress using more scroll distance
-    const typeStartScroll = 100; // Start typing after 100px
-    const typeEndScroll = 1500;  // Finish typing at 1500px (much longer range)
+    // Debug logging to check what's happening with section detection
+    console.log('🔍 Navbar Debug - activeSection:', activeSection, 'scrollY:', scrollY);
 
-    console.log('Scroll Y:', scrollY, 'ActiveSection:', activeSection);
+    if (activeSection === 'hero') {
+      // Only show typewriting effect when in hero section
+      const heroSection = document.querySelector('#hero');
+      if (heroSection) {
+        const heroHeight = heroSection.offsetHeight;
+        const heroTop = heroSection.offsetTop;
+        const heroProgress = Math.max(0, Math.min(1, (scrollY - heroTop) / (heroHeight * 0.8))); // Use 80% of hero height for typing
 
-    if (activeSection === 'hero' || scrollY < typeStartScroll) {
-      // At hero section or barely scrolled - show D.
-      setLogoText('D.');
-    } else if (scrollY >= typeStartScroll && scrollY < typeEndScroll) {
-      // Scrolling through - progressively type name (much slower)
-      const nameProgress = (scrollY - typeStartScroll) / (typeEndScroll - typeStartScroll);
-      const charIndex = Math.floor(nameProgress * fullName.length);
-      const currentText = fullName.slice(0, Math.max(1, charIndex));
-      setLogoText(currentText || 'D');
+        if (heroProgress === 0) {
+          return 'D.';
+        } else if (heroProgress < 1) {
+          // Smooth typewriting - allow name to complete before leaving hero
+          const charIndex = Math.floor(heroProgress * fullName.length);
+          const currentText = fullName.slice(0, Math.max(1, charIndex + 1));
+          return currentText;
+        } else {
+          // Completed typing in hero section
+          return fullName;
+        }
+      } else {
+        return 'D.';
+      }
+    } else if (activeSection === 'about' || activeSection === 'projects' || activeSection === 'blog') {
+      // Show full name for middle sections
+      return fullName;
     } else {
-      // Fully scrolled - show DCM
-      setLogoText('DCM');
+      // Show DCM for contact and footer sections
+      return 'DCM';
     }
-  }, [scrollY, activeSection]);
+  }, [activeSection, scrollY]);
 
   return (
     <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
@@ -62,11 +94,45 @@ const Navbar = memo(() => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Link to="/" className="text-2xl font-bold font-heading text-gradient">
-              <span className="inline-block min-w-[12rem]">
-                {logoText}
-              </span>
-            </Link>
+            <div className="flex items-center">
+              <Link to="/" onClick={handleLogoClick} className="text-2xl font-bold font-heading cursor-pointer">
+                <span
+                  className="inline-block min-w-[16rem] transition-all duration-500 text-gradient"
+                  style={{
+                    '--primary-color': getGradientColors(activeSection).primary,
+                    '--accent-color': getGradientColors(activeSection).accent,
+                    filter: 'blur(0.3px)', // Subtle blur effect
+                    textShadow: '0 0 8px rgba(0,0,0,0.1)' // Soft glow
+                  }}
+                >
+                  {logoText}
+                </span>
+              </Link>
+
+              {/* Resume button - show when displaying full name, hide when DCM */}
+              <AnimatePresence>
+                {logoText === 'Dion Cedrick Marquez' && (
+                  <motion.a
+                    href="/marquezcv.pdf"
+                    download
+                    className="text-xs underline decoration-1 hover:no-underline transition-all duration-300"
+                    style={{
+                      color: getGradientColors(activeSection).accent,
+                      opacity: 0.7,
+                      fontSize: '10px',
+                      marginLeft: '16px',
+                      textUnderlineOffset: '2px'
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.7 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    Resume
+                  </motion.a>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
 
           {/* Desktop Navigation */}
@@ -101,8 +167,8 @@ const Navbar = memo(() => {
                 </motion.li>
               ))}
 
-              {/* Resume Button - appears after hero section */}
-              {activeSection !== 'hero' && (
+              {/* Resume Button - appears after hero section, but only when not showing full name next to logo */}
+              {activeSection !== 'hero' && logoText !== 'Dion Cedrick Marquez' && (
                 <motion.li
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -183,7 +249,7 @@ const Navbar = memo(() => {
               ))}
 
               {/* Resume Button - mobile menu */}
-              {activeSection !== 'hero' && (
+              {activeSection !== 'hero' && logoText !== 'Dion Cedrick Marquez' && (
                 <motion.li
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}

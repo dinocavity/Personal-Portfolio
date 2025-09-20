@@ -1,7 +1,12 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SocialSidebar = memo(() => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [position, setPosition] = useState({ y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const sidebarRef = useRef(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -18,20 +23,97 @@ const SocialSidebar = memo(() => {
     { icon: 'x', url: 'https://x.com/DionCedrickMar1', label: 'X (Twitter)' },
   ], []);
 
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsDragging(true);
+    const startY = e.clientY;
+    const startPos = position.y;
+
+    const handleMouseMove = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const deltaY = e.clientY - startY;
+      const newY = Math.max(-400, Math.min(150, startPos + deltaY));
+      setPosition({ y: newY });
+    };
+
+    const handleMouseUp = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setIsDragging(false);
+
+      // Use current position.y for decision making
+      const currentY = position.y;
+
+      if (currentY > 80) {
+        // Dragged down significantly - hide
+        setIsHidden(true);
+        setPosition({ y: 0 });
+      } else if (currentY < -200) {
+        // Dragged up significantly - snap to top
+        setPosition({ y: -300 });
+      } else {
+        // Return to default
+        setPosition({ y: 0 });
+      }
+
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mouseup', handleMouseUp, { passive: false });
+  }, [position.y]);
+
   if (!isVisible) return null;
 
   return (
-    <div className="fixed left-8 bottom-0 z-50 hidden lg:flex flex-col items-center">
-      <div className="flex flex-col space-y-6 mb-6">
-        {socialLinks.map((social) => (
-          <a
-            key={social.icon}
-            href={social.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-600 hover:text-blue-900 transition-colors duration-300"
-            aria-label={social.label}
+    <>
+      <AnimatePresence>
+        {!isHidden && (
+          <motion.div
+            ref={sidebarRef}
+            className="fixed left-8 bottom-0 z-50 hidden lg:flex flex-col items-center"
+            animate={{ y: position.y }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{
+              type: "spring",
+              damping: isDragging ? 50 : 25,
+              stiffness: isDragging ? 800 : 400,
+              duration: isDragging ? 0 : 0.3
+            }}
+            initial={{ y: 0, opacity: 1 }}
+            style={{ pointerEvents: 'auto' }}
           >
+            {/* Drag handle indicator - larger drag area */}
+            <div
+              className={`w-12 h-8 flex items-center justify-center mb-2 rounded-lg transition-all duration-200 ${
+                isDragging
+                  ? 'bg-gray-200 cursor-grabbing scale-110'
+                  : 'hover:bg-gray-100 cursor-grab'
+              }`}
+              onMouseDown={handleMouseDown}
+              style={{ userSelect: 'none' }}
+            >
+              <div className="w-6 h-1 bg-gray-400 rounded-full" />
+            </div>
+
+            <div className="flex flex-col space-y-6 mb-6" style={{ pointerEvents: 'auto' }}>
+              {socialLinks.map((social) => (
+                <a
+                  key={social.icon}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-blue-900 transition-colors duration-300"
+                  aria-label={social.label}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                >
             {social.icon === 'linkedin' && (
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
@@ -60,11 +142,39 @@ const SocialSidebar = memo(() => {
                 <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
               </svg>
             )}
-          </a>
-        ))}
-      </div>
-      <div className="w-px h-24 bg-gray-300"></div>
-    </div>
+                </a>
+              ))}
+            </div>
+            <div className="w-px h-24 bg-gray-300"></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Pull-up tab when hidden - simple button approach */}
+      {isHidden && (
+        <motion.div
+          className="fixed left-8 bottom-0 z-50 hidden lg:block"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <button
+            className="bg-gray-600 text-white px-4 py-2 rounded-t-lg shadow-lg hover:bg-gray-700 transition-all duration-300 hover:-translate-y-1"
+            onClick={() => {
+              setIsHidden(false);
+              setPosition({ y: 0 });
+            }}
+          >
+            <div className="flex flex-col items-center space-y-1">
+              <svg width="12" height="8" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M7 14l5-5 5 5z"/>
+              </svg>
+              <span className="text-xs font-medium">Social</span>
+            </div>
+          </button>
+        </motion.div>
+      )}
+    </>
   );
 });
 

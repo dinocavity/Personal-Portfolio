@@ -49,17 +49,16 @@ const useScrollManager = () => {
       // Find active section efficiently
       let activeSection = 'hero';
 
-      // Use cached sections or rebuild if needed
-      if (sectionsCache.current.size === 0) {
-        const sections = document.querySelectorAll('section[id]');
-        sections.forEach(section => {
-          sectionsCache.current.set(section.id, {
-            element: section,
-            offsetTop: section.offsetTop,
-            offsetHeight: section.offsetHeight
-          });
+      // Always rebuild section cache to ensure accurate positions
+      sectionsCache.current.clear();
+      const sections = document.querySelectorAll('section[id], footer[id]');
+      sections.forEach(section => {
+        sectionsCache.current.set(section.id, {
+          element: section,
+          offsetTop: section.offsetTop,
+          offsetHeight: section.offsetHeight
         });
-      }
+      });
 
       // Find active section based on scroll position
       const viewportMiddle = scrollY + window.innerHeight / 2;
