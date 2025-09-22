@@ -1,4 +1,4 @@
-import { useState, memo, useCallback, useEffect, useMemo } from 'react';
+import { useState, memo, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import useScrollManager from '../../hooks/useScrollManager';
@@ -13,6 +13,7 @@ const Navbar = memo(() => {
     const colors = {
       hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
       about: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },     // purple: dark → medium → light
+      experience: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' }, // teal: dark → medium → light
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
       blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
       footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
@@ -23,6 +24,7 @@ const Navbar = memo(() => {
   const navLinks = [
     { title: 'Home', href: '#hero' },
     { title: 'About', href: '#about' },
+    { title: 'Experience', href: '#experience' },
     { title: 'Work', href: '#projects' },
     { title: 'Blog', href: '#blog' }
   ];
@@ -30,9 +32,16 @@ const Navbar = memo(() => {
   const handleNavClick = useCallback((e, href) => {
     e.preventDefault();
     const sectionId = href.substring(1); // Remove the '#'
-    scrollToSection(sectionId);
+    console.log('🔍 Navbar click:', { href, sectionId, isMobileMenuOpen: mobileMenuOpen });
+
+    // Close mobile menu first
     setMobileMenuOpen(false);
-  }, [scrollToSection]);
+
+    // Add small delay to ensure menu closes before scrolling
+    setTimeout(() => {
+      scrollToSection(sectionId);
+    }, 150);
+  }, [scrollToSection, mobileMenuOpen]);
 
   const toggleMobileMenu = useCallback(() => {
     setMobileMenuOpen(prev => !prev);
@@ -47,8 +56,7 @@ const Navbar = memo(() => {
   const logoText = useMemo(() => {
     const fullName = 'Dion Cedrick Marquez';
 
-    // Debug logging to check what's happening with section detection
-    console.log('🔍 Navbar Debug - activeSection:', activeSection, 'scrollY:', scrollY);
+    // Debug logging disabled for production
 
     if (activeSection === 'hero') {
       // Only show typewriting effect when in hero section
@@ -196,10 +204,10 @@ const Navbar = memo(() => {
                   <a
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className={`block py-2 font-medium ${
+                    className={`block py-2 font-medium cursor-pointer select-none ${
                       activeSection === link.href.substring(1)
                         ? 'text-primary-color'
-                        : 'text-gray-700'
+                        : 'text-gray-700 hover:text-primary-light'
                     }`}
                   >
                     {link.title}

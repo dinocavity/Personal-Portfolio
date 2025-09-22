@@ -63,12 +63,12 @@ const Experience = () => {
                     )}
                     
                     <div className="flex flex-wrap gap-2">
-                      {exp.skills.map((skill, i) => (
-                        <span 
+                      {exp.technologies.map((tech, i) => (
+                        <span
                           key={i}
                           className="bg-blue-100 text-blue-900 px-3 py-1 rounded-full text-sm"
                         >
-                          {skill}
+                          {tech}
                         </span>
                       ))}
                     </div>

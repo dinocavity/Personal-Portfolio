@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   SiReact,
@@ -9,14 +9,87 @@ import {
 import {
   MdCode
 } from 'react-icons/md';
+import ContactDialog from '../ui/ContactDialog';
 
 const Hero = memo(() => {
   const [isVisible, setIsVisible] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const jsIconRef = useRef(null);
+  const dragStartRef = useRef({ x: 0, y: 0, rotation: 0 });
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  
+
+  // Calculate font scale from rotation (0-360° maps to 0.8x-1.4x)
+  const fontScale = useMemo(() => {
+    const normalizedRotation = ((rotation % 360) + 360) % 360;
+    return 0.8 + (normalizedRotation / 360) * 0.6;
+  }, [rotation]);
+
+  // Update global font scale
+  useEffect(() => {
+    document.documentElement.style.setProperty('--font-scale', fontScale.toString());
+  }, [fontScale]);
+
+  // Mouse drag handlers
+  const handleMouseDown = useCallback((e) => {
+    if (!jsIconRef.current) return;
+
+    const rect = jsIconRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - centerX,
+      y: e.clientY - centerY,
+      rotation: rotation
+    };
+
+    e.preventDefault();
+  }, [rotation]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging || !jsIconRef.current) return;
+
+    const rect = jsIconRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const currentX = e.clientX - centerX;
+    const currentY = e.clientY - centerY;
+
+    const startAngle = Math.atan2(dragStartRef.current.y, dragStartRef.current.x);
+    const currentAngle = Math.atan2(currentY, currentX);
+    const angleDiff = (currentAngle - startAngle) * (180 / Math.PI);
+
+    setRotation(dragStartRef.current.rotation + angleDiff);
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Global mouse events for drag
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'grabbing';
+      document.body.style.userSelect = 'none';
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
   const fadeIn = useMemo(() => ({
     hidden: { opacity: 0, y: 40 },
     visible: (custom) => ({
@@ -65,9 +138,12 @@ const Hero = memo(() => {
                   variants={fadeIn}
                   className="flex flex-wrap gap-5"
                 >
-                  <a href="#contact" className="btn-primary">
+                  <button
+                    onClick={() => setContactDialogOpen(true)}
+                    className="btn-primary"
+                  >
                     <span className="relative z-10">Let's Talk</span>
-                  </a>
+                  </button>
                   <a href="/resume.pdf" download className="btn-outline">
                     See Resume
                   </a>
@@ -166,7 +242,13 @@ const Hero = memo(() => {
           </div>
         </div>
       </div>
-      
+
+      {/* Contact Dialog */}
+      <ContactDialog
+        isOpen={contactDialogOpen}
+        onClose={() => setContactDialogOpen(false)}
+      />
+
     </section>
   );
 });

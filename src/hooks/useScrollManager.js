@@ -122,14 +122,26 @@ const useScrollManager = () => {
 
   // Smooth scroll utility function
   const scrollToSection = useCallback((sectionId) => {
+    console.log('🔍 Scrolling to section:', sectionId);
     const element = document.querySelector(`#${sectionId}`);
+
     if (element) {
       const targetPosition = element.offsetTop - 80; // Account for navbar height
+      console.log('📍 Element found, scrolling to position:', targetPosition);
 
-      window.scrollTo({
-        top: targetPosition,
-        behavior: 'smooth'
-      });
+      // Try alternative scroll method if smooth scrolling doesn't work
+      try {
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
+      } catch (error) {
+        // Fallback for older browsers or mobile issues
+        console.log('⚠️ Smooth scroll failed, using fallback');
+        window.scrollTo(0, targetPosition);
+      }
+    } else {
+      console.error('❌ Element not found:', `#${sectionId}`);
     }
   }, []);
 
