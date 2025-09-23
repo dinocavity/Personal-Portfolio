@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * - Progress calculation
  * - Active section tracking
  * - Scroll state management
+ * - Minimal re-renders with stable references
  */
 const useScrollManager = () => {
   const [scrollData, setScrollData] = useState({
@@ -22,6 +23,7 @@ const useScrollManager = () => {
   const rafRef = useRef(null);
   const sectionsCache = useRef(new Map());
   const lastUpdate = useRef(0);
+  const stableScrollDataRef = useRef(scrollData);
 
   // Throttled scroll handler using requestAnimationFrame
   const handleScroll = useCallback(() => {
@@ -49,66 +51,87 @@ const useScrollManager = () => {
       // Find active section efficiently
       let activeSection = 'hero';
 
-      // Always rebuild section cache to ensure accurate positions
-      sectionsCache.current.clear();
-      const sections = document.querySelectorAll('section[id], footer[id]');
-      sections.forEach(section => {
-        sectionsCache.current.set(section.id, {
-          element: section,
-          offsetTop: section.offsetTop,
-          offsetHeight: section.offsetHeight
+      // Build section cache only if empty (performance optimization)
+      if (sectionsCache.current.size === 0) {
+        const sections = document.querySelectorAll('section[id], footer[id]');
+        console.log('🔍 Found sections:', Array.from(sections).map(s => s.id));
+        sections.forEach(section => {
+          sectionsCache.current.set(section.id, {
+            element: section,
+            offsetTop: section.offsetTop,
+            offsetHeight: section.offsetHeight
+          });
         });
-      });
+        console.log('📐 Section positions cached');
+      }
 
-      // Find active section based on scroll position
+      // Find active section based on scroll position - more robust detection
+      const viewportTop = scrollY;
       const viewportMiddle = scrollY + window.innerHeight / 2;
       const viewportBottom = scrollY + window.innerHeight;
 
       let foundSection = null;
-      let lastVisibleSection = null;
+      let bestSection = null;
+      let maxVisibleArea = 0;
 
-      // First pass: find section that contains viewport middle
+      // Find section with largest visible area (more reliable than just middle point)
       for (const [sectionId, data] of sectionsCache.current) {
         const { offsetTop, offsetHeight } = data;
+        const sectionBottom = offsetTop + offsetHeight;
 
-        // Check if viewport middle is within this section
-        if (viewportMiddle >= offsetTop && viewportMiddle < offsetTop + offsetHeight) {
-          foundSection = sectionId;
-          break;
+        // Calculate visible area of this section
+        const visibleTop = Math.max(viewportTop, offsetTop);
+        const visibleBottom = Math.min(viewportBottom, sectionBottom);
+        const visibleArea = Math.max(0, visibleBottom - visibleTop);
+
+        // If this section has the most visible area, it's the active one
+        if (visibleArea > maxVisibleArea) {
+          maxVisibleArea = visibleArea;
+          bestSection = sectionId;
         }
 
-        // Track the last section that's at least partially visible
-        if (offsetTop <= viewportBottom && (offsetTop + offsetHeight) >= scrollY) {
-          lastVisibleSection = sectionId;
+        // Fallback: check if viewport middle is within this section
+        if (viewportMiddle >= offsetTop && viewportMiddle < sectionBottom) {
+          foundSection = sectionId;
         }
       }
+
+      // Use the section with most visible area (more robust)
+      activeSection = bestSection || foundSection || 'hero';
 
       // Special handling for footer - if we're near the bottom, prioritize footer
       const footer = sectionsCache.current.get('footer');
-      if (footer && viewportBottom >= footer.offsetTop - 100) {
+      if (footer && viewportBottom >= footer.offsetTop - 50) {
         activeSection = 'footer';
-      } else if (foundSection) {
-        activeSection = foundSection;
-      } else if (lastVisibleSection) {
-        // If no section contains viewport middle, use the last visible section
-        activeSection = lastVisibleSection;
       }
-      // else keep the previous activeSection (don't change to 'hero')
 
-      // Update state only if values changed
+      // Update state only if values changed significantly (with hysteresis for activeSection)
       setScrollData(prevData => {
+        // For section changes, add some hysteresis to prevent rapid switching
+        let newActiveSection = activeSection;
+        if (prevData.activeSection !== activeSection) {
+          // Only change section if it's been stable for a few frames or significantly different
+          if (Math.abs(prevData.scrollY - scrollY) > 20) {
+            newActiveSection = activeSection;
+          } else {
+            newActiveSection = prevData.activeSection; // Keep previous section
+          }
+        }
+
         if (
           Math.abs(prevData.progress - progress) > 0.1 || // Only update if progress changed by more than 0.1%
-          prevData.activeSection !== activeSection ||
+          prevData.activeSection !== newActiveSection ||
           prevData.isScrolled !== isScrolled ||
           Math.abs(prevData.scrollY - scrollY) > 10 // Only update scrollY if changed by more than 10px
         ) {
-          return {
+          const newData = {
             progress: Math.round(progress * 10) / 10, // Round to 1 decimal place
-            activeSection,
+            activeSection: newActiveSection,
             isScrolled,
             scrollY
           };
+          stableScrollDataRef.current = newData;
+          return newData;
         }
         return prevData;
       });

@@ -8,6 +8,11 @@ const Projects = () => {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { activeSection } = useScrollManager();
 
+  // Search functionality
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
   // Get dynamic colors based on active section
   const colors = useMemo(() => {
     const colorMap = {
@@ -20,8 +25,58 @@ const Projects = () => {
     return colorMap[activeSection] || colorMap.hero;
   }, [activeSection]);
 
-  // Use only projects
-  const allItems = projects.map(item => ({ ...item, type: 'project' }));
+  // Generate suggestions based on available data
+  const generateSuggestions = useMemo(() => {
+    const allSuggestions = new Set();
+    if (projects && Array.isArray(projects)) {
+      projects.forEach(project => {
+        if (project.title) allSuggestions.add(project.title);
+        if (project.technologies && Array.isArray(project.technologies)) {
+          project.technologies.forEach(tech => allSuggestions.add(tech));
+        }
+        if (project.category) allSuggestions.add(project.category);
+      });
+    }
+    return Array.from(allSuggestions).sort();
+  }, []);
+
+  // Filter projects based on search term
+  const filteredProjects = useMemo(() => {
+    if (!searchTerm || !projects || !Array.isArray(projects)) return projects || [];
+    return projects.filter(project =>
+      (project.title && project.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (project.technologies && Array.isArray(project.technologies) && project.technologies.some(tech => tech.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+      (project.category && project.category.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [searchTerm]);
+
+  // Handle search input and suggestions
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    if (value.length > 0) {
+      const filteredSuggestions = generateSuggestions
+        .filter(suggestion =>
+          suggestion.toLowerCase().includes(value.toLowerCase()) &&
+          suggestion.toLowerCase() !== value.toLowerCase()
+        )
+        .slice(0, 5);
+      setSuggestions(filteredSuggestions);
+      setShowSuggestions(filteredSuggestions.length > 0);
+    } else {
+      setShowSuggestions(false);
+      setSuggestions([]);
+    }
+  };
+
+  const selectSuggestion = (suggestion) => {
+    setSearchTerm(suggestion);
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
+
+  // Use filtered projects
+  const allItems = filteredProjects.map(item => ({ ...item, type: 'project' }));
 
   // Pagination state with equal distribution
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,9 +153,73 @@ const Projects = () => {
   return (
     <section id="projects" className="py-20">
       <div className="container mx-auto px-4 md:px-8">
-        <div className="text-center mb-16">
-          <h2 className="section-title text-center mx-auto after:left-1/2 after:-translate-x-1/2">Projects</h2>
-          <p className="text-gray-600 max-w-3xl mx-auto">Showcasing my development projects that demonstrate my technical skills and problem-solving abilities</p>
+        <div className="mb-16">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div className="text-center md:text-left">
+              <h2 className="section-title">Projects</h2>
+              <p className="text-gray-600 max-w-3xl">Showcasing my development projects that demonstrate my technical skills and problem-solving abilities</p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative max-w-sm mx-auto md:mx-0">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => searchTerm && setShowSuggestions(suggestions.length > 0)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="block w-full pl-12 pr-12 py-2.5 border border-white/20 rounded-xl leading-5 bg-white/10 backdrop-blur-md placeholder-gray-400 text-gray-800 focus:outline-none focus:placeholder-gray-500 focus:ring-2 focus:ring-white/30 focus:border-white/40 sm:text-sm transition-all duration-300 hover:bg-white/15"
+                style={{
+                  borderColor: searchTerm ? colors.light + '80' : 'rgba(255, 255, 255, 0.2)',
+                  boxShadow: searchTerm ? `0 0 0 2px ${colors.light}40` : 'none'
+                }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setShowSuggestions(false);
+                    setSuggestions([]);
+                  }}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center group"
+                >
+                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Search Suggestions */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md border border-white/30 rounded-xl shadow-lg z-50 overflow-hidden">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-white/60 transition-colors duration-200 border-b border-gray-200/30 last:border-b-0"
+                      onClick={() => selectSuggestion(suggestion)}
+                    >
+                      <span className="text-sm">{suggestion}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Search Results Info */}
+          {searchTerm && (
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-600">
+                Found {allItems.length} project{allItems.length !== 1 ? 's' : ''} matching "{searchTerm}"
+              </p>
+            </div>
+          )}
         </div>
 
         <div ref={ref}>

@@ -4,10 +4,24 @@ import useScrollManager from '../../hooks/useScrollManager';
 const ParticleBackground = memo(() => {
   const { progress, activeSection } = useScrollManager();
 
-  // Debug: log the activeSection whenever it changes
-  useEffect(() => {
-    console.log('ParticleBackground - Active section changed to:', activeSection);
-  }, [activeSection]);
+  // Store current activeSection in a ref that gets updated on each render
+  const currentActiveSectionRef = useRef(activeSection);
+  const lastLoggedSectionRef = useRef(activeSection);
+
+  // Update current section and log changes (only once per change)
+  if (currentActiveSectionRef.current !== activeSection && lastLoggedSectionRef.current !== activeSection) {
+    const colorMap = {
+      hero: '🔵 Blue',
+      skills: '🟢 Teal',
+      projects: '🟡 Amber',
+      certifications: '🟢 Emerald',
+      personal: '🟣 Purple',
+      footer: '🔴 Red'
+    };
+    console.log(`🎨 Colors: ${colorMap[currentActiveSectionRef.current] || currentActiveSectionRef.current} → ${colorMap[activeSection] || activeSection}`);
+    lastLoggedSectionRef.current = activeSection;
+  }
+  currentActiveSectionRef.current = activeSection;
 
   const canvasRef = useRef(null);
   const textCanvasRef = useRef(null);
@@ -149,14 +163,14 @@ const ParticleBackground = memo(() => {
       }
 
       draw(ctx, activeSection, textCtx = null) {
-        // Define colors for each section
+        // Define colors for each section - diverse color palette
         const sectionColors = {
-          hero: { r: 59, g: 130, b: 246 },
-          skills: { r: 20, g: 184, b: 166 },
-          projects: { r: 245, g: 158, b: 11 },
-          certifications: { r: 16, g: 185, b: 129 },
-          personal: { r: 147, g: 51, b: 234 },
-          footer: { r: 6, g: 95, b: 70 }
+          hero: { r: 59, g: 130, b: 246 },        // #3b82f6 (blue)
+          skills: { r: 20, g: 184, b: 166 },      // #14b8a6 (teal)
+          projects: { r: 245, g: 158, b: 11 },    // #f59e0b (amber)
+          certifications: { r: 16, g: 185, b: 129 }, // #10b981 (emerald)
+          personal: { r: 147, g: 51, b: 234 },    // #9333ea (purple)
+          footer: { r: 239, g: 68, b: 68 }        // #ef4444 (red)
         };
 
         const newTargetColor = sectionColors[activeSection] || sectionColors.hero;
@@ -301,13 +315,14 @@ const ParticleBackground = memo(() => {
       }
 
       draw(ctx, activeSection) {
-        // Define colors for each section - more vibrant and contrasting
+        // Define colors for each section - diverse color palette
         const sectionColors = {
-          hero: { r: 59, g: 130, b: 246 },      // #3b82f6 (blue)
-          about: { r: 147, g: 51, b: 234 },     // #9333ea (purple)
-          projects: { r: 245, g: 158, b: 11 },   // #f59e0b (amber)
-          blog: { r: 239, g: 68, b: 68 },       // #ef4444 (red)
-          contact: { r: 16, g: 185, b: 129 }    // #10b981 (green)
+          hero: { r: 59, g: 130, b: 246 },        // #3b82f6 (blue)
+          skills: { r: 20, g: 184, b: 166 },      // #14b8a6 (teal)
+          projects: { r: 245, g: 158, b: 11 },    // #f59e0b (amber)
+          certifications: { r: 16, g: 185, b: 129 }, // #10b981 (emerald)
+          personal: { r: 147, g: 51, b: 234 },    // #9333ea (purple)
+          footer: { r: 239, g: 68, b: 68 }        // #ef4444 (red)
         };
 
         // Update target color for current section
@@ -370,14 +385,14 @@ const ParticleBackground = memo(() => {
       ctx.globalAlpha = 1;
       ctx.lineWidth = 1;
 
-      // Define colors for each section - matching particle colors
+      // Define colors for each section - matching App.jsx color system
       const sectionColors = {
-        hero: { r: 59, g: 130, b: 246 },      // #3b82f6 (blue)
-        skills: { r: 20, g: 184, b: 166 },    // #14b8a6 (teal)
-        projects: { r: 245, g: 158, b: 11 },   // #f59e0b (amber)
+        hero: { r: 59, g: 130, b: 246 },        // #3b82f6 (blue)
+        skills: { r: 20, g: 184, b: 166 },      // #14b8a6 (teal)
+        projects: { r: 245, g: 158, b: 11 },    // #f59e0b (amber)
         certifications: { r: 16, g: 185, b: 129 }, // #10b981 (emerald)
-        personal: { r: 147, g: 51, b: 234 },     // #9333ea (purple)
-        footer: { r: 6, g: 95, b: 70 }       // #065f46 (emerald dark)
+        personal: { r: 147, g: 51, b: 234 },    // #9333ea (purple)
+        footer: { r: 16, g: 185, b: 129 }       // #10b981 (emerald)
       };
 
       // Update target color and interpolate
@@ -434,16 +449,16 @@ const ParticleBackground = memo(() => {
 
         for (let i = 0; i < particles.length; i++) {
           particles[i].update();
-          particles[i].draw(ctx, activeSection);
+          particles[i].draw(ctx, currentActiveSectionRef.current);
         }
 
         // Update and draw hint particle
         if (hintParticleRef.current) {
           hintParticleRef.current.update();
-          hintParticleRef.current.draw(ctx, activeSection, textCtx);
+          hintParticleRef.current.draw(ctx, currentActiveSectionRef.current, textCtx);
         }
 
-        drawConnections(ctx, particles, activeSection);
+        drawConnections(ctx, particles, currentActiveSectionRef.current);
 
         // Debug: Draw mouse position and hover indicators
         if (mouseRef.current.x !== undefined && mouseRef.current.y !== undefined) {
@@ -497,10 +512,6 @@ const ParticleBackground = memo(() => {
           }
         }
 
-        // Debug: Log active section (remove this later)
-        if (Math.random() < 0.01) { // Only log occasionally to avoid spam
-          console.log('Active section:', activeSection);
-        }
 
         lastFrameTime = currentTime;
       }
@@ -660,26 +671,23 @@ const ParticleBackground = memo(() => {
         document.body.style.cursor = '';
       }
     };
-  }, [activeSection]); // Single dependency
+  }, []); // Run only once on mount
 
   // Get background color based on active section
   const getBackgroundColor = (activeSection) => {
     const colors = {
-      hero: 'rgba(59, 130, 246, 0.04)',      // blue
-      about: 'rgba(147, 51, 234, 0.04)',     // purple
-      projects: 'rgba(245, 158, 11, 0.04)',   // amber
-      blog: 'rgba(239, 68, 68, 0.04)',       // red
-      contact: 'rgba(16, 185, 129, 0.04)'    // green
+      hero: 'rgba(59, 130, 246, 0.04)',        // blue
+      skills: 'rgba(20, 184, 166, 0.04)',      // teal
+      projects: 'rgba(245, 158, 11, 0.04)',    // amber
+      certifications: 'rgba(16, 185, 129, 0.04)', // emerald
+      personal: 'rgba(147, 51, 234, 0.04)',    // purple
+      footer: 'rgba(239, 68, 68, 0.04)'        // red
     };
     return colors[activeSection] || colors.hero;
   };
 
   return (
     <>
-      {/* Debug indicator - remove later */}
-      <div className="fixed top-20 right-4 z-50 bg-black text-white px-3 py-1 rounded text-sm">
-        Section: {activeSection}
-      </div>
 
       {/* Main particle canvas with blur effect */}
       <canvas
