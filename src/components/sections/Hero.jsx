@@ -144,7 +144,7 @@ const Hero = memo(() => {
                   >
                     <span className="relative z-10">Let's Talk</span>
                   </button>
-                  <a href="/resume.pdf" download className="btn-outline">
+                  <a href="/documents/resume.pdf" download className="btn-outline">
                     See Resume
                   </a>
                 </motion.div>
@@ -170,7 +170,7 @@ const Hero = memo(() => {
                   <div className="w-72 h-72 sm:w-96 sm:h-96 rounded-2xl bg-white p-2 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
                     <div className="w-full h-full rounded-xl overflow-hidden">
                       <img 
-                        src="/hero1.jpg" 
+                        src="/profile/hero1.jpg" 
                         alt="Dion Cedrick Marquez" 
                         className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                       />

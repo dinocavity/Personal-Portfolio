@@ -133,7 +133,7 @@ const SocialSidebar = memo(() => {
                     transition={{ duration: 0.4, ease: "easeOut" }}
                   >
                     <a
-                      href="/marquezcv.pdf"
+                      href="/documents/marquezcv..pdf"
                       download
                       className="text-gray-600 transition-colors duration-300 block"
                       style={{

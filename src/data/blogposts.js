@@ -5,7 +5,7 @@ const blogposts = [
       date: 'April 7, 2025',
       readTime: 5,
       excerpt: 'We kicked off our educational trip with a day exploring the heart of Manila—from the historic walls of Intramuros to the iconic Rizal Park and the bustling Mall of Asia.',
-      coverImage: '/day1-coverpage.jpg',
+      coverImage: '/blog/day1-coverpage.jpg',
       tags: ['Career', 'Personal'],
       content: [
         {
@@ -14,27 +14,27 @@ const blogposts = [
         {
           heading: 'Intramuros: The Walled City',
           text: 'Our first destination was Intramuros, a historic district that dates back to the Spanish colonial period. We visited landmarks like Fort Santiago and San Agustin Church, admired the Spanish-inspired architecture, and walked through cobblestone streets that whispered stories from the past. It was both educational and awe-inspiring to stand in a place so central to our national heritage.',
-          image: '/day1-blog1.jpg',
+          image: '/blog/day1-blog1.jpg',
           imageAlt: 'Fort Santiago in Intramuros',
           imageCaption: 'Exploring Fort Santiago, a key piece of Philippine colonial history'
         },
         {
           heading: 'Rizal Park: Honoring a National Hero',
           text: 'Next, we visited Rizal Park (Luneta), one of the most significant historical sites in the Philippines. Here, we paid tribute to Dr. José Rizal at his monument and reflected on his sacrifice for the country. The wide open spaces and well-kept gardens made for a peaceful stop amid the bustling city.',
-          image: '/day1-blog2.jpg',
+          image: '/blog/day1-blog2.jpg',
           imageAlt: 'Rizal Monument in Luneta Park',
           imageCaption: 'A moment of reflection at the Rizal Monument in Luneta Park'
         },
         {
           heading: 'Mall of Asia: City Lights and Coastal Views',
           text: 'We wrapped up the day at the Mall of Asia (MOA), one of the largest malls in Asia. Aside from shopping and food trips, we enjoyed the scenic view of Manila Bay from the seaside area. It was a fun and relaxing way to end our first day.',
-          image: '/day1-done.jpg',
+          image: '/blog/day1-done.jpg',
           imageAlt: 'Mirror shot on Mall of Asia ',
           imageCaption: 'Sunset views at MOA—relaxing by the bay after a full day of exploring'
         },
         {
           text: 'Day 1 set the tone for the rest of our trip—blending history, culture, and leisure. It reminded us that learning doesn’t always happen in classrooms; sometimes, it’s found in the streets, stories, and landmarks of the places we visit.',
-          image: '/day1-blog3.jpg',
+          image: '/blog/day1-blog3.jpg',
           imageAlt: 'Sunset in Manila Bay',
           imageCaption: 'Such a beautiful experience to witness the sunset on Manila Bay'
         }
@@ -46,27 +46,27 @@ const blogposts = [
       date: 'April 8, 2025',
       readTime: 4,
       excerpt: 'Our second day took us to Subic Bay Port, where we explored the port’s role in international trade, saw high-tech security systems in action, and found creativity inside the convention center.',
-      coverImage: '/day2-coverpage.jpg',
+      coverImage: '/blog/day2-coverpage.jpg',
       tags: ['Subic', 'Logistics', 'Port Operations', 'Art'],
       content: [
         {
           heading: 'Subic Bay Port Admission Building',
           text: 'Our day began at the Port Admission Building of Subic Bay, where we were introduced to the port’s key role in facilitating international trade. The staff gave us an insightful orientation on how imports and exports are processed, how international ships are docked and handled, and how logistics are managed across the region.',
-          image: '/day2-blog4.jpg',
+          image: '/blog/day2-blog4.jpg',
           imageAlt: 'Subic Bay Port building exterior',
           imageCaption: 'At the Port Admission Building – learning how global trade flows through Subic'
         },
         {
           heading: 'Port Police and CCTV Command Center',
           text: 'We then visited the port’s police station, where we were shown their high-functioning surveillance system. The staff demonstrated how their CCTV technology helps maintain port safety and efficiently monitor movements within the area. It was impressive to see real-time monitoring with such accuracy and scale.',
-          image: '/day2-blog3.jpg',
+          image: '/blog/day2-blog3.jpg',
           imageAlt: 'CCTV monitoring screens inside the police station',
           imageCaption: 'A look inside the command center – real-time monitoring at Subic Port'
         },
         {
           heading: 'Subic Convention Center: Art Amid Industry',
           text: 'To end the day, we visited the Subic Convention Center. Surprisingly, it featured a beautiful exhibit of local and cultural artworks inside—a refreshing contrast to the industrial atmosphere of the port. It reminded us that even in places of commerce and trade, there’s room to celebrate creativity and culture.',
-          image: '/day2-blog2.jpg',
+          image: '/blog/day2-blog2.jpg',
           imageAlt: 'Art exhibit inside Subic Convention Center',
           imageCaption: 'A quiet space for art and culture in the heart of an industrial hub'
         },
@@ -81,27 +81,27 @@ const blogposts = [
       date: 'April 9, 2025',
       readTime: 3,
       excerpt: 'From exploring the wonders of biodiversity to reliving historical milestones, Day 3 immersed us in the rich heritage and culture of the Philippines.',
-      coverImage: '/day3-coverpage.jpg',
+      coverImage: '/blog/day3-coverpage.jpg',
       tags: ['Museum', 'Culture', 'History'],
       content: [
         {
           heading: 'National Museum of Natural History',
           text: 'Our first stop was the National Museum of Natural History in Manila. It showcased the biodiversity of the Philippines—from unique wildlife to geological formations. The Tree of Life structure in the center was both architecturally stunning and symbolically powerful.',
-          image: '/day3-blog1.jpg',
+          image: '/blog/day3-blog1.jpg',
           imageAlt: 'Tree of Life at the museum',
           imageCaption: 'Inside the National Museum – discovering the Philippines’ natural heritage'
         },
         {
           heading: 'Quezon Memorial Shrine',
           text: 'Next, we visited the Quezon Memorial Shrine, where we learned about the life and legacy of former President Manuel L. Quezon. His leadership during a pivotal era in Philippine history left a lasting impression on us.',
-          image: '/day3-blog2.jpg',
+          image: '/blog/day3-blog2.jpg',
           imageAlt: 'Quezon Memorial Shrine',
           imageCaption: 'Standing beneath the towering monument honoring President Quezon'
         },
         {
           heading: 'Presidential Car Museum',
           text: 'To end the day, we toured the Presidential Car Museum, which displayed official vehicles used by Philippine presidents over the decades. It offered a unique and personal view into the country’s political past.',
-          image: '/day3-blog3.jpg',
+          image: '/blog/day3-blog3.jpg',
           imageAlt: 'Vintage presidential car',
           imageCaption: 'History on wheels – exploring decades of presidential cars'
         }
@@ -113,21 +113,21 @@ const blogposts = [
       date: 'April 10, 2025',
       readTime: 3,
       excerpt: 'We explored the tech industry at Hytec and got a rare glimpse into the central banking system at Bangko Sentral ng Pilipinas.',
-      coverImage: '/day4-coverpage.jpg',
+      coverImage: '/blog/day4-coverpage.jpg',
       tags: ['Technology', 'Economy', 'Finance'],
       content: [
         {
           heading: 'Hytec Power Inc.',
           text: 'Our visit to Hytec Power Inc. gave us insight into industrial technology and automation. We observed how the company contributes to technical education and equipment manufacturing in the Philippines.',
-          image: '/day4-blog1.jpg',
+          image: '/blog/day4-blog1.jpg',
           imageAlt: 'Hytec facility tour',
           imageCaption: 'Learning about automation and engineering at Hytec'
         },
         {
-          image: '/day4-blog2.jpg',
+          image: '/blog/day4-blog2.jpg',
         },
         {
-          image: '/day4-blog3.jpg',
+          image: '/blog/day4-blog3.jpg',
         }
 
       ]
@@ -170,27 +170,27 @@ const blogposts = [
       date: 'April 12, 2025',
       readTime: 3,
       excerpt: 'We made our way to Baguio, stopping at La Trinidad’s strawberry farms, the Chinese Bell Tower, and the historic Philippine Military Academy.',
-      coverImage: 'day6.jpg',
+      coverImage: '/blog/day6.jpg',
       tags: ['Baguio', 'Culture', 'Nature'],
       content: [
         {
           heading: 'La Trinidad Strawberry Farm',
           text: 'Our first stop in the highlands was the La Trinidad Strawberry Farm. We enjoyed the cool breeze and got to see how strawberries are grown and harvested—a local pride of Benguet.',
-          image: '/day6 photo_2025-05-05_16-11-15.jpg',
+          image: '/blog/day6 photo_2025-05-05_16-11-15.jpg',
           imageAlt: 'Rows of strawberries in La Trinidad',
           imageCaption: 'Fresh from the farm – La Trinidad’s sweet pride'
         },
         {
           heading: 'Chinese Bell Tower',
           text: 'Next, we visited the Chinese Bell Tower in Baguio. The location offered a quiet moment for reflection and a beautiful view of the city’s skyline.',
-          image: '/day6 photo_2025-05-05_16-11-22.jpg',
+          image: '/blog/day6 photo_2025-05-05_16-11-22.jpg',
           imageAlt: 'Chinese Bell in Baguio',
           imageCaption: 'Harmony and history at Baguio’s Chinese Bell Tower'
         },
         {
           heading: 'Philippine Military Academy (PMA)',
           text: 'We ended the day at the Philippine Military Academy, where we learned about the life of cadets and saw impressive displays of discipline and military tradition.',
-          image: '/day6-pma.jpg',
+          image: '/blog/day6-pma.jpg',
           imageAlt: 'PMA entrance or parade ground',
           imageCaption: 'Where leaders are forged – visiting the PMA grounds'
         }
@@ -202,18 +202,18 @@ const blogposts = [
       date: 'April 13, 2025',
       readTime: 2,
       excerpt: 'Our final day in Baguio gave us time to relax, explore, and enjoy the beauty and charm of Burnham Park.',
-      coverImage: '/day7-coverpage.jpg',
+      coverImage: '/blog/day7-coverpage.jpg',
       tags: ['Baguio', 'Leisure', 'Parks'],
       content: [
         {
           heading: 'Burnham Park Activities',
           text: 'With no official schedule, we spent the day at Burnham Park. We went boating on the lake, rode bikes, and enjoyed street food around the park. It was the perfect way to unwind and reflect on an amazing week.',
-          image: '/day7-blog1.jpg',
+          image: '/blog/day7-blog1.jpg',
           imageAlt: 'Enjoying our free day',
           imageCaption: 'Relaxing by the lake – free time well spent at Burnham Park'
         },
         {
-          image: '/day7.jpg',
+          image: '/blog/day7.jpg',
           text: 'This final day reminded us that balance is essential—even on educational trips. Sometimes the best lessons come when we slow down and simply enjoy the moment.'
         }
       ]
