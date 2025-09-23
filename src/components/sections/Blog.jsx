@@ -13,7 +13,7 @@ const Blog = () => {
   const colors = useMemo(() => {
     const colorMap = {
       hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
-      about: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },     // purple: dark → medium → light
+      personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
       blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
       footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
@@ -208,7 +208,7 @@ const Blog = () => {
                     <motion.div
                       key={post.id}
                       variants={item}
-                      className={`group relative rounded-3xl overflow-hidden bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border border-gray-200/30 hover:border-white/60 transition-all duration-700 hover:shadow-2xl hover:shadow-gray-500/10 hover:scale-[1.02] hover:-translate-y-1 ${gridClass}`}
+                      className={`group relative rounded-lg overflow-hidden bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border border-gray-200/30 hover:border-white/60 transition-all duration-700 hover:shadow-2xl hover:shadow-gray-500/10 hover:scale-[1.02] hover:-translate-y-1 ${gridClass}`}
                     >
                       <Link to={`/blog/${post.id}`} className="block h-full">
                         {/* Background Image */}
@@ -294,7 +294,7 @@ const Blog = () => {
                 <button 
                   onClick={prevPage} 
                   disabled={currentPage === 1}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
                     currentPage === 1
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white border hover:shadow-md'
@@ -326,7 +326,7 @@ const Blog = () => {
                     <button
                       key={i}
                       onClick={() => goToPage(i + 1)}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border shadow-md`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 border shadow-md`}
                       style={currentPage === i + 1 ? {
                         backgroundColor: colors.primary,
                         color: 'white',
@@ -364,7 +364,7 @@ const Blog = () => {
                 <button
                   onClick={nextPage}
                   disabled={currentPage === totalPages}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
                     currentPage === totalPages
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white border hover:shadow-md'

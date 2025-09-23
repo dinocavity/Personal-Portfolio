@@ -10,8 +10,12 @@ const ParticleBackground = memo(() => {
   }, [activeSection]);
 
   const canvasRef = useRef(null);
+  const textCanvasRef = useRef(null);
   const animationFrameRef = useRef(null);
   const particlesRef = useRef([]);
+  const hintParticleRef = useRef(null);
+  const showHintRef = useRef(true);
+  const hintTimerRef = useRef(null);
 
   // Global connection color state for smooth transitions
   const connectionColorStateRef = useRef({
@@ -29,32 +33,200 @@ const ParticleBackground = memo(() => {
   // Single consolidated effect for everything
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const textCanvas = textCanvasRef.current;
+    if (!canvas || !textCanvas) return;
 
     const ctx = canvas.getContext('2d', { alpha: true });
+    const textCtx = textCanvas.getContext('2d', { alpha: true });
 
     // Ensure true full screen canvas size
     const updateCanvasSize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      // Set canvas dimensions to full viewport
+      // Set canvas dimensions to full viewport for both canvases
       canvas.width = width;
       canvas.height = height;
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
 
+      textCanvas.width = width;
+      textCanvas.height = height;
+      textCanvas.style.width = width + 'px';
+      textCanvas.style.height = height + 'px';
+
       return { width, height };
     };
 
-    // Simple mouse position calculation
-    const getMousePos = (e) => {
+    // Mouse and touch position calculation
+    const getPointerPos = (e) => {
       const rect = canvas.getBoundingClientRect();
+      // Handle both mouse and touch events
+      const clientX = e.clientX || (e.touches && e.touches[0]?.clientX) || (e.changedTouches && e.changedTouches[0]?.clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0]?.clientY) || (e.changedTouches && e.changedTouches[0]?.clientY);
+
       return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: clientX - rect.left,
+        y: clientY - rect.top
       };
     };
+
+    // Special hint particle class that moves gently with a message bubble
+    class HintParticle {
+      constructor(canvasWidth, canvasHeight) {
+        this.x = canvasWidth * 0.8; // Position on the right side
+        this.y = canvasHeight * 0.3; // Upper portion
+        this.size = 4;
+        this.speedX = (Math.random() - 0.5) * 0.3; // Gentle movement
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.originalSpeedX = this.speedX;
+        this.originalSpeedY = this.speedY;
+        this.opacity = 1;
+        this.canvasWidth = canvasWidth;
+        this.canvasHeight = canvasHeight;
+        this.isDragged = false;
+        this.pulsePhase = 0;
+        this.showBubble = true;
+        this.bubbleOpacity = 1;
+
+        // For smooth color transitions
+        this.currentColor = { r: 59, g: 130, b: 246 };
+        this.targetColor = { r: 59, g: 130, b: 246 };
+        this.colorTransitionSpeed = 0.08;
+      }
+
+      isMouseOver(mouseX, mouseY) {
+        const distance = Math.sqrt((mouseX - this.x) ** 2 + (mouseY - this.y) ** 2);
+        return distance <= this.size + 20;
+      }
+
+      startDrag() {
+        this.isDragged = true;
+        this.speedX = 0;
+        this.speedY = 0;
+        this.showBubble = false; // Hide bubble when dragged
+      }
+
+      stopDrag() {
+        this.isDragged = false;
+        // Resume autonomous movement with new random speeds
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.originalSpeedX = this.speedX;
+        this.originalSpeedY = this.speedY;
+        // Don't show bubble again after being dragged
+      }
+
+      moveTo(x, y) {
+        if (this.isDragged) {
+          this.x = x;
+          this.y = y;
+        }
+      }
+
+      update() {
+        // Pulsing animation
+        this.pulsePhase += 0.08;
+
+        // Gentle autonomous movement when not being dragged
+        if (!this.isDragged) {
+          this.x += this.speedX;
+          this.y += this.speedY;
+
+          // Bounce off walls
+          if (this.x <= 0 || this.x >= this.canvasWidth) {
+            this.speedX = -this.speedX;
+          }
+          if (this.y <= 0 || this.y >= this.canvasHeight) {
+            this.speedY = -this.speedY;
+          }
+        }
+
+        // Smooth color transition
+        this.currentColor.r += (this.targetColor.r - this.currentColor.r) * this.colorTransitionSpeed;
+        this.currentColor.g += (this.targetColor.g - this.currentColor.g) * this.colorTransitionSpeed;
+        this.currentColor.b += (this.targetColor.b - this.currentColor.b) * this.colorTransitionSpeed;
+      }
+
+      draw(ctx, activeSection, textCtx = null) {
+        // Define colors for each section
+        const sectionColors = {
+          hero: { r: 59, g: 130, b: 246 },
+          skills: { r: 20, g: 184, b: 166 },
+          projects: { r: 245, g: 158, b: 11 },
+          certifications: { r: 16, g: 185, b: 129 },
+          personal: { r: 147, g: 51, b: 234 },
+          footer: { r: 6, g: 95, b: 70 }
+        };
+
+        const newTargetColor = sectionColors[activeSection] || sectionColors.hero;
+        this.targetColor = { ...newTargetColor };
+
+        const r = Math.round(this.currentColor.r);
+        const g = Math.round(this.currentColor.g);
+        const b = Math.round(this.currentColor.b);
+
+        // Draw pulsing particle
+        const pulseSize = this.size + Math.sin(this.pulsePhase) * 1.5;
+        ctx.globalAlpha = this.isDragged ? 1.0 : this.opacity;
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, pulseSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Add glow effect
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, pulseSize * 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw message bubble on separate text canvas if visible and textCtx is provided
+        if (this.showBubble && this.bubbleOpacity > 0 && textCtx) {
+          this.drawMessageBubble(textCtx, r, g, b);
+        }
+      }
+
+      drawMessageBubble(ctx, r, g, b) {
+        const bubbleX = this.x - 120;
+        const bubbleY = this.y - 50;
+        const bubbleWidth = 140;
+        const bubbleHeight = 35;
+        const cornerRadius = 8;
+
+        ctx.globalAlpha = this.bubbleOpacity * 0.9;
+
+        // Draw bubble background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.beginPath();
+        ctx.roundRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, cornerRadius);
+        ctx.fill();
+
+        // Draw bubble border
+        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.6)`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw bubble tail (pointing to particle)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.beginPath();
+        ctx.moveTo(bubbleX + bubbleWidth - 10, bubbleY + bubbleHeight);
+        ctx.lineTo(this.x - 8, this.y - 8);
+        ctx.lineTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight - 10);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw text
+        ctx.globalAlpha = this.bubbleOpacity;
+        ctx.fillStyle = 'white';
+        ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('You can drag any particle!', bubbleX + bubbleWidth/2, bubbleY + bubbleHeight/2 + 4);
+      }
+
+      hideBubble() {
+        this.showBubble = false;
+      }
+    }
 
     // Simple particle class with smooth color transitions
     class Particle {
@@ -175,6 +347,19 @@ const ParticleBackground = memo(() => {
       for (let i = 0; i < count; i++) {
         particlesRef.current.push(new Particle(width, height));
       }
+
+      // Create hint particle
+      hintParticleRef.current = new HintParticle(width, height);
+
+      // Set timer to hide hint after 10 seconds
+      if (hintTimerRef.current) {
+        clearTimeout(hintTimerRef.current);
+      }
+      hintTimerRef.current = setTimeout(() => {
+        if (hintParticleRef.current) {
+          hintParticleRef.current.hideBubble();
+        }
+      }, 10000);
     };
 
     createParticles();
@@ -188,10 +373,11 @@ const ParticleBackground = memo(() => {
       // Define colors for each section - matching particle colors
       const sectionColors = {
         hero: { r: 59, g: 130, b: 246 },      // #3b82f6 (blue)
-        about: { r: 147, g: 51, b: 234 },     // #9333ea (purple)
+        skills: { r: 20, g: 184, b: 166 },    // #14b8a6 (teal)
         projects: { r: 245, g: 158, b: 11 },   // #f59e0b (amber)
-        blog: { r: 239, g: 68, b: 68 },       // #ef4444 (red)
-        contact: { r: 16, g: 185, b: 129 }    // #10b981 (green)
+        certifications: { r: 16, g: 185, b: 129 }, // #10b981 (emerald)
+        personal: { r: 147, g: 51, b: 234 },     // #9333ea (purple)
+        footer: { r: 6, g: 95, b: 70 }       // #065f46 (emerald dark)
       };
 
       // Update target color and interpolate
@@ -210,18 +396,24 @@ const ParticleBackground = memo(() => {
         b: Math.round(state.current.b)
       };
 
-      for (let a = 0; a < particles.length; a++) {
-        for (let b = a + 1; b < particles.length; b++) {
-          const dx = particles[a].x - particles[b].x;
-          const dy = particles[a].y - particles[b].y;
+      // Create combined array of all particles including hint particle
+      const allParticles = [...particles];
+      if (hintParticleRef.current) {
+        allParticles.push(hintParticleRef.current);
+      }
+
+      for (let a = 0; a < allParticles.length; a++) {
+        for (let b = a + 1; b < allParticles.length; b++) {
+          const dx = allParticles[a].x - allParticles[b].x;
+          const dy = allParticles[a].y - allParticles[b].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < 150) {
             const opacity = (1 - distance / 150) * 0.8;
             ctx.strokeStyle = `rgba(${connectionColor.r}, ${connectionColor.g}, ${connectionColor.b}, ${opacity})`;
             ctx.beginPath();
-            ctx.moveTo(particles[a].x, particles[a].y);
-            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.moveTo(allParticles[a].x, allParticles[a].y);
+            ctx.lineTo(allParticles[b].x, allParticles[b].y);
             ctx.stroke();
           }
         }
@@ -236,12 +428,19 @@ const ParticleBackground = memo(() => {
     const animate = (currentTime) => {
       if (currentTime - lastFrameTime >= frameInterval) {
         ctx.clearRect(0, 0, width, height);
+        textCtx.clearRect(0, 0, width, height);
 
         const particles = particlesRef.current;
 
         for (let i = 0; i < particles.length; i++) {
           particles[i].update();
           particles[i].draw(ctx, activeSection);
+        }
+
+        // Update and draw hint particle
+        if (hintParticleRef.current) {
+          hintParticleRef.current.update();
+          hintParticleRef.current.draw(ctx, activeSection, textCtx);
         }
 
         drawConnections(ctx, particles, activeSection);
@@ -272,6 +471,11 @@ const ParticleBackground = memo(() => {
               hoveredParticle = particle;
             }
           });
+
+          // Check hint particle hover
+          if (hintParticleRef.current && hintParticleRef.current.isMouseOver(mouseRef.current.x, mouseRef.current.y)) {
+            hoveredParticle = hintParticleRef.current;
+          }
 
           // Draw hover indicator for the hovered particle
           if (hoveredParticle) {
@@ -317,56 +521,88 @@ const ParticleBackground = memo(() => {
         particle.x = Math.min(particle.x, width);
         particle.y = Math.min(particle.y, height);
       });
+
+      // Update hint particle position for new canvas size
+      if (hintParticleRef.current) {
+        hintParticleRef.current.canvasWidth = width;
+        hintParticleRef.current.canvasHeight = height;
+        // Reposition to maintain relative position
+        hintParticleRef.current.x = Math.min(width * 0.8, width - 150);
+        hintParticleRef.current.y = Math.min(height * 0.3, height - 100);
+      }
     };
 
     // Add resize event listener
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Consolidated mouse event handlers
-    const handleGlobalMouseMove = (e) => {
-      const mousePos = getMousePos(e);
-      mouseRef.current = mousePos;
+    // Consolidated pointer event handlers (mouse and touch)
+    const handleGlobalPointerMove = (e) => {
+      const pointerPos = getPointerPos(e);
+      mouseRef.current = pointerPos;
 
       if (isDraggingRef.current && draggedParticleRef.current) {
-        draggedParticleRef.current.moveTo(mousePos.x, mousePos.y);
+        draggedParticleRef.current.moveTo(pointerPos.x, pointerPos.y);
       }
 
-      // Update cursor based on particle proximity
-      if (!isDraggingRef.current &&
+      // Update cursor based on particle proximity (only for mouse, not touch)
+      if (!isDraggingRef.current && e.type === 'mousemove' &&
           !e.target.closest('a, button, input, textarea, select, [role="button"], [tabindex]') &&
           !e.target.hasAttribute('onclick')) {
 
         let overParticle = false;
         const particles = particlesRef.current;
         for (let i = 0; i < particles.length; i++) {
-          if (particles[i].isMouseOver(mousePos.x, mousePos.y)) {
+          if (particles[i].isMouseOver(pointerPos.x, pointerPos.y)) {
             overParticle = true;
             break;
           }
         }
+
+        // Check hint particle
+        if (!overParticle && hintParticleRef.current && hintParticleRef.current.isMouseOver(pointerPos.x, pointerPos.y)) {
+          overParticle = true;
+        }
+
         document.body.style.cursor = overParticle ? 'grab' : '';
       }
     };
 
-    const handleGlobalMouseDown = (e) => {
+    const handleGlobalPointerDown = (e) => {
       if (e.target.tagName === 'CANVAS' ||
           (!e.target.closest('a, button, input, textarea, select, [role="button"], [tabindex]') &&
            !e.target.hasAttribute('onclick'))) {
 
-        const mousePos = getMousePos(e);
-        mouseRef.current = mousePos;
+        const pointerPos = getPointerPos(e);
+        mouseRef.current = pointerPos;
 
-        console.log('Mouse click at:', mousePos);
+        console.log('Pointer down at:', pointerPos);
 
         const particles = particlesRef.current;
+
+        // Check hint particle first
+        if (hintParticleRef.current && hintParticleRef.current.isMouseOver(pointerPos.x, pointerPos.y)) {
+          console.log('✅ Found hint particle at:', hintParticleRef.current.x, hintParticleRef.current.y);
+          draggedParticleRef.current = hintParticleRef.current;
+          isDraggingRef.current = true;
+          hintParticleRef.current.startDrag();
+          if (e.type === 'mousedown') {
+            document.body.style.cursor = 'grabbing';
+          }
+          e.preventDefault();
+          return;
+        }
+
+        // Check regular particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const particle = particles[i];
-          if (particle.isMouseOver(mousePos.x, mousePos.y)) {
+          if (particle.isMouseOver(pointerPos.x, pointerPos.y)) {
             console.log('✅ Found particle at:', particle.x, particle.y);
             draggedParticleRef.current = particle;
             isDraggingRef.current = true;
             particle.startDrag();
-            document.body.style.cursor = 'grabbing';
+            if (e.type === 'mousedown') {
+              document.body.style.cursor = 'grabbing';
+            }
             e.preventDefault();
             break;
           }
@@ -374,7 +610,7 @@ const ParticleBackground = memo(() => {
       }
     };
 
-    const handleGlobalMouseUp = () => {
+    const handleGlobalPointerUp = () => {
       if (isDraggingRef.current && draggedParticleRef.current) {
         draggedParticleRef.current.stopDrag();
         draggedParticleRef.current = null;
@@ -383,11 +619,18 @@ const ParticleBackground = memo(() => {
       }
     };
 
-    // Add all event listeners
+    // Add all event listeners (mouse and touch)
     window.addEventListener('resize', handleResize, { passive: true });
-    document.addEventListener('mousemove', handleGlobalMouseMove, { passive: false });
-    document.addEventListener('mousedown', handleGlobalMouseDown, { passive: false });
-    document.addEventListener('mouseup', handleGlobalMouseUp, { passive: true });
+
+    // Mouse events
+    document.addEventListener('mousemove', handleGlobalPointerMove, { passive: false });
+    document.addEventListener('mousedown', handleGlobalPointerDown, { passive: false });
+    document.addEventListener('mouseup', handleGlobalPointerUp, { passive: true });
+
+    // Touch events for mobile
+    document.addEventListener('touchmove', handleGlobalPointerMove, { passive: false });
+    document.addEventListener('touchstart', handleGlobalPointerDown, { passive: false });
+    document.addEventListener('touchend', handleGlobalPointerUp, { passive: true });
 
     // Start animation
     setTimeout(() => {
@@ -396,11 +639,22 @@ const ParticleBackground = memo(() => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mousedown', handleGlobalMouseDown);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
+
+      // Remove mouse events
+      document.removeEventListener('mousemove', handleGlobalPointerMove);
+      document.removeEventListener('mousedown', handleGlobalPointerDown);
+      document.removeEventListener('mouseup', handleGlobalPointerUp);
+
+      // Remove touch events
+      document.removeEventListener('touchmove', handleGlobalPointerMove);
+      document.removeEventListener('touchstart', handleGlobalPointerDown);
+      document.removeEventListener('touchend', handleGlobalPointerUp);
+
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (hintTimerRef.current) {
+        clearTimeout(hintTimerRef.current);
       }
       if (isDraggingRef.current) {
         document.body.style.cursor = '';
@@ -427,6 +681,7 @@ const ParticleBackground = memo(() => {
         Section: {activeSection}
       </div>
 
+      {/* Main particle canvas with blur effect */}
       <canvas
         ref={canvasRef}
         className="fixed inset-0 w-full h-full pointer-events-none z-0"
@@ -435,6 +690,20 @@ const ParticleBackground = memo(() => {
           backgroundColor: getBackgroundColor(activeSection),
           filter: 'blur(1.2px)',
           transition: 'background-color 0.8s ease, filter 0.3s ease',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          position: 'fixed'
+        }}
+      />
+
+      {/* Text overlay canvas (unblurred) */}
+      <canvas
+        ref={textCanvasRef}
+        className="fixed inset-0 w-full h-full pointer-events-none z-0"
+        style={{
+          opacity: 1,
           top: 0,
           left: 0,
           width: '100vw',

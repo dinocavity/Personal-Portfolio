@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { memo, Suspense, lazy, useEffect } from 'react';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -14,15 +14,20 @@ const BlogDetail = lazy(() => import('./pages/BlogDetail'));
 
 const App = memo(() => {
   const { activeSection } = useScrollManager();
+  const location = useLocation();
+
+  // Check if we're on a blog detail page
+  const isBlogDetailPage = location.pathname.startsWith('/blog/');
 
   // Update global CSS custom properties based on active section
   useEffect(() => {
     const getGradientColors = (activeSection) => {
       const colors = {
         hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
-        about: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },     // purple: dark → medium → light
-        experience: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' }, // teal: dark → medium → light
+        skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },    // teal: dark → medium → light
         projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
+        certifications: { primary: '#059669', light: '#10b981', accent: '#6ee7b7' }, // emerald: dark → medium → light
+        personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
         blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
         footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
       };
@@ -42,7 +47,7 @@ const App = memo(() => {
       <ParticleBackground />
       <Navbar />
       <ProgressBar />
-      <SocialSidebar />
+      {!isBlogDetailPage && <SocialSidebar />}
 
       <main className="pt-16 pb-24 relative z-10">
         <Suspense fallback={

@@ -1,10 +1,25 @@
 import { memo, useMemo, useState } from 'react';
 import ContactDialog from '../ui/ContactDialog';
+import useScrollManager from '../../hooks/useScrollManager';
 
 
 const Footer = memo(() => {
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { activeSection } = useScrollManager();
+
+  // Get dynamic colors based on active section
+  const colors = useMemo(() => {
+    const colorMap = {
+      hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue
+      skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },    // teal
+      projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber
+      certifications: { primary: '#059669', light: '#10b981', accent: '#6ee7b7' }, // emerald
+      personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple
+      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald
+    };
+    return colorMap[activeSection] || colorMap.footer;
+  }, [activeSection]);
 
 
   return (
@@ -12,13 +27,21 @@ const Footer = memo(() => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">Dion Marquez</h3>
+            <h3 className="text-xl font-bold mb-4" style={{ color: colors.light }}>Dion Marquez</h3>
             <p className="text-gray-400 mb-4">
               IT Student specializing in building exceptional web experiences.
             </p>
             <div className="flex space-x-4">
               <div className="relative group">
-                <a href="https://www.linkedin.com/in/dion-cedrick-marquez-014b97360/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
+                <a
+                  href="https://www.linkedin.com/in/dion-cedrick-marquez-014b97360/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 transition-colors"
+                  aria-label="LinkedIn"
+                  onMouseEnter={(e) => e.target.style.color = colors.light}
+                  onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                   </svg>
@@ -87,17 +110,63 @@ const Footer = memo(() => {
           </div>
           
           <div>
-            <h3 className="text-xl font-bold mb-4">Quick Links</h3>
+            <h3 className="text-xl font-bold mb-4" style={{ color: colors.light }}>Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="#hero" className="text-gray-400 hover:text-white transition-colors">Home</a></li>
-              <li><a href="#about" className="text-gray-400 hover:text-white transition-colors">About</a></li>
-              <li><a href="#projects" className="text-gray-400 hover:text-white transition-colors">Work</a></li>
-              <li><a href="#blog" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+              <li>
+                <a
+                  href="#hero"
+                  className="text-gray-400 transition-colors"
+                  onMouseEnter={(e) => e.target.style.color = colors.light}
+                  onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}
+                >
+                  Home
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#skills"
+                  className="text-gray-400 transition-colors"
+                  onMouseEnter={(e) => e.target.style.color = colors.light}
+                  onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}
+                >
+                  Skills
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#projects"
+                  className="text-gray-400 transition-colors"
+                  onMouseEnter={(e) => e.target.style.color = colors.light}
+                  onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}
+                >
+                  Projects
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#certifications"
+                  className="text-gray-400 transition-colors"
+                  onMouseEnter={(e) => e.target.style.color = colors.light}
+                  onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}
+                >
+                  Certificates
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#personal"
+                  className="text-gray-400 transition-colors"
+                  onMouseEnter={(e) => e.target.style.color = colors.light}
+                  onMouseLeave={(e) => e.target.style.color = '#9CA3AF'}
+                >
+                  Personal
+                </a>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-xl font-bold mb-4">Contact Info</h3>
+            <h3 className="text-xl font-bold mb-4" style={{ color: colors.light }}>Contact Info</h3>
             <ul className="space-y-2 text-gray-400">
               <li className="flex items-start space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,12 +190,12 @@ const Footer = memo(() => {
             </ul>
             <button
               onClick={() => setIsDialogOpen(true)}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              className="mt-4 btn-primary !flex !items-center !space-x-2 !px-4 !py-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
-              <span>Send Message</span>
+              <span className="relative z-10">Send Message</span>
             </button>
           </div>
         </div>

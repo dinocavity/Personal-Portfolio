@@ -1,17 +1,17 @@
 import Hero from '../components/sections/Hero';
-import About from '../components/sections/About';
-import Experience from '../components/sections/Experience';
+import Skills from '../components/sections/Skills';
 import Projects from '../components/sections/Projects';
-import Blog from '../components/sections/Blog';
+import Certifications from '../components/sections/Certifications';
+import Personal from '../components/sections/Personal';
 
 const Home = () => {
   return (
     <>
       <Hero />
-      <About />
-      <Experience />
+      <Skills />
       <Projects />
-      <Blog />
+      <Certifications />
+      <Personal />
     </>
   );
 };

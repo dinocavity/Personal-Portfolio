@@ -1,21 +1,23 @@
 import { useState, memo, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import useScrollManager from '../../hooks/useScrollManager';
 
 const Navbar = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isScrolled, activeSection, scrollToSection, scrollY } = useScrollManager();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Get CSS custom properties for gradient colors to match particles exactly
   // Both dark and light colors follow the particle color theme
   const getGradientColors = (activeSection) => {
     const colors = {
       hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
-      about: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },     // purple: dark → medium → light
-      experience: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' }, // teal: dark → medium → light
+      skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },    // teal: dark → medium → light
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
-      blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
+      certifications: { primary: '#059669', light: '#10b981', accent: '#6ee7b7' }, // emerald: dark → medium → light
+      personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
       footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
     };
     return colors[activeSection] || colors.hero;
@@ -23,25 +25,64 @@ const Navbar = memo(() => {
 
   const navLinks = [
     { title: 'Home', href: '#hero' },
-    { title: 'About', href: '#about' },
-    { title: 'Experience', href: '#experience' },
-    { title: 'Work', href: '#projects' },
-    { title: 'Blog', href: '#blog' }
+    { title: 'Skills', href: '#skills' },
+    { title: 'Projects', href: '#projects' },
+    { title: 'Certificates', href: '#certifications' },
+    { title: 'Personal', href: '#personal' }
   ];
   
   const handleNavClick = useCallback((e, href) => {
     e.preventDefault();
-    const sectionId = href.substring(1); // Remove the '#'
-    console.log('🔍 Navbar click:', { href, sectionId, isMobileMenuOpen: mobileMenuOpen });
+    const targetSectionId = href.substring(1); // Remove the '#' - capture immediately
+    const isMobile = window.innerWidth < 768; // Check if mobile screen
+    console.log('🔍 Navbar click:', {
+      href,
+      targetSectionId,
+      isMobileMenuOpen: mobileMenuOpen,
+      currentPath: location.pathname,
+      isMobile,
+      screenWidth: window.innerWidth
+    });
 
     // Close mobile menu first
     setMobileMenuOpen(false);
 
-    // Add small delay to ensure menu closes before scrolling
-    setTimeout(() => {
-      scrollToSection(sectionId);
-    }, 150);
-  }, [scrollToSection, mobileMenuOpen]);
+    // Check if we're on a blog page (not on homepage)
+    const isOnBlogPage = location.pathname.startsWith('/blog/');
+
+    // Create a function to handle scrolling with the captured section ID
+    const performScroll = (sectionId) => {
+      const isMobile = window.innerWidth < 768;
+      console.log(`🎯 ${isMobile ? '📱 Mobile' : '💻 Desktop'} - Attempting to scroll to:`, sectionId);
+      const element = document.querySelector(`#${sectionId}`);
+      if (element) {
+        console.log(`✅ ${isMobile ? '📱 Mobile' : '💻 Desktop'} - Element found, scrolling to:`, sectionId);
+        scrollToSection(sectionId);
+      } else {
+        console.log(`⏳ ${isMobile ? '📱 Mobile' : '💻 Desktop'} - Element not found, retrying for:`, sectionId);
+        // Give mobile devices a bit more time if needed
+        const retryDelay = isMobile ? 300 : 200;
+        setTimeout(() => {
+          console.log(`🔄 ${isMobile ? '📱 Mobile' : '💻 Desktop'} - Retry scrolling to:`, sectionId);
+          scrollToSection(sectionId);
+        }, retryDelay);
+      }
+    };
+
+    if (isOnBlogPage) {
+      // Navigate to homepage first, then scroll to section
+      navigate('/');
+      // Wait for navigation to complete and DOM to be ready, then scroll
+      // Give mobile devices a bit more time for navigation
+      const navigationDelay = isMobile ? 700 : 500;
+      setTimeout(() => performScroll(targetSectionId), navigationDelay);
+    } else {
+      // We're already on homepage, just scroll
+      // Mobile devices might need a bit more time even for same-page scrolling
+      const scrollDelay = isMobile ? 200 : 150;
+      setTimeout(() => performScroll(targetSectionId), scrollDelay);
+    }
+  }, [scrollToSection, mobileMenuOpen, location.pathname, navigate]);
 
   const toggleMobileMenu = useCallback(() => {
     setMobileMenuOpen(prev => !prev);
@@ -49,8 +90,38 @@ const Navbar = memo(() => {
 
   const handleLogoClick = useCallback((e) => {
     e.preventDefault();
-    scrollToSection('hero');
-  }, [scrollToSection]);
+
+    // Check if we're on a blog page
+    const isOnBlogPage = location.pathname.startsWith('/blog/');
+    const targetSection = 'hero';
+
+    // Create a function to handle scrolling to hero
+    const performScroll = (sectionId) => {
+      const isMobile = window.innerWidth < 768;
+      console.log(`🎯 Logo click ${isMobile ? '📱 Mobile' : '💻 Desktop'} - attempting to scroll to:`, sectionId);
+      const element = document.querySelector(`#${sectionId}`);
+      if (element) {
+        console.log(`✅ Logo click ${isMobile ? '📱 Mobile' : '💻 Desktop'} - element found, scrolling to:`, sectionId);
+        scrollToSection(sectionId);
+      } else {
+        console.log(`⏳ Logo click ${isMobile ? '📱 Mobile' : '💻 Desktop'} - element not found, retrying for:`, sectionId);
+        const retryDelay = isMobile ? 300 : 200;
+        setTimeout(() => {
+          console.log(`🔄 Logo click ${isMobile ? '📱 Mobile' : '💻 Desktop'} - retry scrolling to:`, sectionId);
+          scrollToSection(sectionId);
+        }, retryDelay);
+      }
+    };
+
+    if (isOnBlogPage) {
+      // Navigate to homepage first, then scroll to hero
+      navigate('/');
+      setTimeout(() => performScroll(targetSection), 500);
+    } else {
+      // We're already on homepage, just scroll to hero
+      performScroll(targetSection);
+    }
+  }, [scrollToSection, location.pathname, navigate]);
 
   // Calculate logo text using useMemo instead of useEffect for better performance
   const logoText = useMemo(() => {
@@ -80,7 +151,7 @@ const Navbar = memo(() => {
       } else {
         return 'D.';
       }
-    } else if (activeSection === 'about' || activeSection === 'projects' || activeSection === 'blog') {
+    } else if (activeSection === 'personal' || activeSection === 'projects' || activeSection === 'certifications') {
       // Show full name for middle sections
       return fullName;
     } else {

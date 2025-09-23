@@ -62,14 +62,38 @@ const useScrollManager = () => {
 
       // Find active section based on scroll position
       const viewportMiddle = scrollY + window.innerHeight / 2;
+      const viewportBottom = scrollY + window.innerHeight;
 
+      let foundSection = null;
+      let lastVisibleSection = null;
+
+      // First pass: find section that contains viewport middle
       for (const [sectionId, data] of sectionsCache.current) {
         const { offsetTop, offsetHeight } = data;
+
+        // Check if viewport middle is within this section
         if (viewportMiddle >= offsetTop && viewportMiddle < offsetTop + offsetHeight) {
-          activeSection = sectionId;
+          foundSection = sectionId;
           break;
         }
+
+        // Track the last section that's at least partially visible
+        if (offsetTop <= viewportBottom && (offsetTop + offsetHeight) >= scrollY) {
+          lastVisibleSection = sectionId;
+        }
       }
+
+      // Special handling for footer - if we're near the bottom, prioritize footer
+      const footer = sectionsCache.current.get('footer');
+      if (footer && viewportBottom >= footer.offsetTop - 100) {
+        activeSection = 'footer';
+      } else if (foundSection) {
+        activeSection = foundSection;
+      } else if (lastVisibleSection) {
+        // If no section contains viewport middle, use the last visible section
+        activeSection = lastVisibleSection;
+      }
+      // else keep the previous activeSection (don't change to 'hero')
 
       // Update state only if values changed
       setScrollData(prevData => {
@@ -120,9 +144,9 @@ const useScrollManager = () => {
     };
   }, [handleScroll, handleResize]);
 
-  // Smooth scroll utility function
-  const scrollToSection = useCallback((sectionId) => {
-    console.log('🔍 Scrolling to section:', sectionId);
+  // Smooth scroll utility function with retry logic
+  const scrollToSection = useCallback((sectionId, retryCount = 0) => {
+    console.log('🔍 Scrolling to section:', sectionId, 'Retry:', retryCount);
     const element = document.querySelector(`#${sectionId}`);
 
     if (element) {
@@ -141,7 +165,17 @@ const useScrollManager = () => {
         window.scrollTo(0, targetPosition);
       }
     } else {
-      console.error('❌ Element not found:', `#${sectionId}`);
+      console.error('❌ Element not found:', `#${sectionId}`, 'Retry:', retryCount);
+
+      // Retry up to 3 times with increasing delays for navigation scenarios
+      if (retryCount < 3) {
+        const delay = (retryCount + 1) * 200; // 200ms, 400ms, 600ms
+        setTimeout(() => {
+          scrollToSection(sectionId, retryCount + 1);
+        }, delay);
+      } else {
+        console.error('❌ Failed to find element after retries:', `#${sectionId}`);
+      }
     }
   }, []);
 
