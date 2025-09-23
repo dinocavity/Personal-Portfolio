@@ -1,17 +1,19 @@
 import { memo, useMemo } from 'react';
-import useScrollManager from '../../hooks/useScrollManager';
+import { useScroll } from '../../contexts/ScrollContext';
 
 const ProgressBar = memo(() => {
-  const { progress, activeSection } = useScrollManager();
+  const { progress, activeSection } = useScroll();
 
   // Get gradient colors to match navbar - same color system
   const getGradientColors = useMemo(() => {
     const colors = {
       hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
-      personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
+      skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },    // teal: dark → medium → light
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
+      certifications: { primary: '#c2410c', light: '#f97316', accent: '#fb923c' }, // orange: dark → medium → light
+      personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
       blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
-      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
+      footer: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' }     // red: dark → medium → light
     };
     return colors[activeSection] || colors.hero;
   }, [activeSection]);

@@ -1,13 +1,13 @@
 import { useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import useScrollManager from '../../hooks/useScrollManager';
+import { useScroll } from '../../contexts/ScrollContext';
 import blogposts from '../../data/blogposts';
 
 const Blog = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const { activeSection } = useScrollManager();
+  const { activeSection } = useScroll();
 
   // Get dynamic colors based on active section
   const colors = useMemo(() => {
@@ -16,7 +16,7 @@ const Blog = () => {
       personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
       blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
-      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
+      footer: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' }     // red: dark → medium → light
     };
     return colorMap[activeSection] || colorMap.hero;
   }, [activeSection]);

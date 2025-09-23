@@ -1,12 +1,12 @@
 import { memo, useMemo, useState } from 'react';
 import ContactDialog from '../ui/ContactDialog';
-import useScrollManager from '../../hooks/useScrollManager';
+import { useScroll } from '../../contexts/ScrollContext';
 
 
 const Footer = memo(() => {
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { activeSection } = useScrollManager();
+  const { activeSection } = useScroll();
 
   // Get dynamic colors based on active section
   const colors = useMemo(() => {
@@ -14,9 +14,9 @@ const Footer = memo(() => {
       hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue
       skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },    // teal
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber
-      certifications: { primary: '#059669', light: '#10b981', accent: '#6ee7b7' }, // emerald
+      certifications: { primary: '#c2410c', light: '#f97316', accent: '#fb923c' }, // orange
       personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple
-      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald
+      footer: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' }     // red
     };
     return colorMap[activeSection] || colorMap.footer;
   }, [activeSection]);

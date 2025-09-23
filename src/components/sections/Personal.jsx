@@ -15,18 +15,25 @@ import {
   MdArticle,
   MdTranslate,
   MdSchool,
-  MdAccountCircle
+  MdAccountCircle,
+  MdMovie,
+  MdMusicNote,
+  MdTv,
+  MdAutoStories
 } from 'react-icons/md';
 import { GiArcheryTarget } from 'react-icons/gi';
-import useScrollManager from '../../hooks/useScrollManager';
+import { useScroll } from '../../contexts/ScrollContext';
 import blogposts from '../../data/blogposts';
 
 const Personal = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const { activeSection } = useScrollManager();
+  const { activeSection } = useScroll();
 
   const [activeTab, setActiveTab] = useState('about');
+  const [showMoreEducation, setShowMoreEducation] = useState(false);
+  const [showMoreHobbies, setShowMoreHobbies] = useState(false);
+  const [showMoreLanguages, setShowMoreLanguages] = useState(false);
 
   // Blog pagination for compact view
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,9 +46,9 @@ const Personal = () => {
       hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },
       skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },
-      certifications: { primary: '#059669', light: '#10b981', accent: '#6ee7b7' },
+      certifications: { primary: '#c2410c', light: '#f97316', accent: '#fb923c' },
       personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },
-      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }
+      footer: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' }
     };
     return colorMap[activeSection] || colorMap.personal;
   }, [activeSection]);
@@ -64,6 +71,7 @@ const Personal = () => {
     { name: 'English', level: 'Fluent' },
     { name: 'Chavacano', level: 'Fluent' },
     { name: 'Bisaya', level: 'Fluent' },
+    { name: 'Japanese', level: 'Beginner' },
   ];
 
   const achievements = [
@@ -94,6 +102,16 @@ const Personal = () => {
       description: 'Competitive archer with international experience. Archery has taught me focus, patience, and precision - skills I apply to coding.'
     },
     {
+      name: 'Anime',
+      icon: MdMovie,
+      description: 'Enjoying Japanese animation for storytelling, art style, and creative narratives that inspire visual design.'
+    },
+    {
+      name: 'Manhua & Manga',
+      icon: MdAutoStories,
+      description: 'Reading Chinese and Japanese comics for visual storytelling techniques and artistic inspiration.'
+    },
+    {
       name: 'Photography',
       icon: MdCameraAlt,
       description: 'Capturing moments and exploring visual composition. Photography enhances my eye for UI/UX design.'
@@ -107,6 +125,16 @@ const Personal = () => {
       name: 'Reading',
       icon: MdMenuBook,
       description: 'Technology blogs, programming books, and personal development literature.'
+    },
+    {
+      name: 'Music (Spotify)',
+      icon: MdMusicNote,
+      description: 'Discovering new artists and genres on Spotify. Music helps with focus during coding sessions.'
+    },
+    {
+      name: 'Netflix',
+      icon: MdTv,
+      description: 'Watching series and documentaries for entertainment and exploring different cultures and perspectives.'
     }
   ];
 
@@ -191,14 +219,37 @@ const Personal = () => {
           custom={1}
           className="lg:col-span-2"
         >
-          <div className="border border-gray-200/50 rounded-2xl p-8 hover:border-violet-200 hover:shadow-lg transition-all duration-300">
-            <h4 className="text-2xl font-bold mb-6 flex items-center">
-              <MdAccountCircle
-                className="w-6 h-6 mr-3"
-                style={{ color: colors.primary }}
-              />
-              About Me
-            </h4>
+          <div className="bg-white/2 backdrop-blur-lg border border-gray-200/30 rounded-2xl p-8 hover:border-violet-200 hover:shadow-lg transition-all duration-300 min-h-[500px]">
+            {/* Avatar */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="mb-8 flex justify-center"
+            >
+              <div className="relative w-24 h-24 md:w-28 md:h-28">
+                {/* Avatar background with gradient border */}
+                <div
+                  className="absolute inset-0 rounded-full p-1 bg-gradient-to-r"
+                  style={{
+                    background: `linear-gradient(135deg, ${colors.primary}, ${colors.light}, ${colors.accent})`
+                  }}
+                >
+                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                    {/* You can replace this with an actual image */}
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+                      {/* Placeholder avatar - you can replace with <img src="/path-to-your-avatar.jpg" alt="Dion Cedrick Marquez" className="w-full h-full object-cover" /> */}
+                      <MdPerson className="w-12 h-12 md:w-14 md:h-14 text-gray-500" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status indicator */}
+                <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-white shadow-lg">
+                </div>
+              </div>
+            </motion.div>
+
             <div className="space-y-6 text-gray-700 leading-relaxed">
               <p>
                 I'm a dedicated <strong>Software Engineer</strong> based in <strong>Zamboanga City, Philippines</strong>,
@@ -232,7 +283,7 @@ const Personal = () => {
           className="space-y-8"
         >
           {/* Languages Section - Achievement style */}
-          <div className="border border-gray-200/50 rounded-2xl p-6 hover:border-violet-200 hover:shadow-lg transition-all duration-300">
+          <div className="bg-white/2 backdrop-blur-lg border border-gray-200/30 rounded-2xl p-6 hover:border-violet-200 hover:shadow-lg transition-all duration-300">
             <h4 className="text-xl font-bold mb-6 flex items-center">
               <MdTranslate
                 className="w-5 h-5 mr-3"
@@ -241,7 +292,8 @@ const Personal = () => {
               Languages
             </h4>
             <div className="space-y-4">
-              {languages.map((language, index) => (
+              {/* First 2 languages - always visible */}
+              {languages.slice(0, 2).map((language, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
@@ -264,11 +316,67 @@ const Personal = () => {
                   </div>
                 </motion.div>
               ))}
+
+              {/* Additional languages (conditionally shown) */}
+              <AnimatePresence>
+                {showMoreLanguages && (
+                  <>
+                    {languages.slice(2).map((language, index) => (
+                      <motion.div
+                        key={index + 2}
+                        initial={{ opacity: 0, x: -20, height: 0 }}
+                        animate={{ opacity: 1, x: 0, height: 'auto' }}
+                        exit={{ opacity: 0, x: -20, height: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className="border-l-4 pl-4 py-2"
+                        style={{ borderLeftColor: colors.primary }}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <h5 className="font-semibold text-gray-900">{language.name}</h5>
+                          <span
+                            className="font-medium text-sm px-2 py-1 rounded-full"
+                            style={{
+                              color: colors.primary,
+                              backgroundColor: colors.accent + '20'
+                            }}
+                          >
+                            {language.level}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </>
+                )}
+              </AnimatePresence>
             </div>
+
+            {/* See More/Less Button */}
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              onClick={() => setShowMoreLanguages(!showMoreLanguages)}
+              className="w-full mt-4 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300 border"
+              style={{
+                color: colors.primary,
+                borderColor: colors.primary + '40',
+                backgroundColor: colors.primary + '10'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = colors.primary + '20';
+                e.target.style.borderColor = colors.primary + '60';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = colors.primary + '10';
+                e.target.style.borderColor = colors.primary + '40';
+              }}
+            >
+              {showMoreLanguages ? 'Show Less' : 'See More'}
+            </motion.button>
           </div>
 
           {/* Education Section - Achievement style */}
-          <div className="border border-gray-200/50 rounded-2xl p-6 hover:border-violet-200 hover:shadow-lg transition-all duration-300">
+          <div className="bg-white/2 backdrop-blur-lg border border-gray-200/30 rounded-2xl p-6 hover:border-violet-200 hover:shadow-lg transition-all duration-300">
             <h4 className="text-xl font-bold mb-6 flex items-center">
               <MdSchool
                 className="w-5 h-5 mr-3"
@@ -277,7 +385,7 @@ const Personal = () => {
               Education
             </h4>
             <div className="space-y-4">
-              {/* Current Education */}
+              {/* Latest Education - Graduated */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -298,62 +406,95 @@ const Personal = () => {
                   className="font-medium mb-1"
                   style={{ color: colors.light }}
                 >
-                  Final Year Student
+                  Graduate 🎓
                 </p>
-                <p className="text-gray-600 text-sm">Western Mindanao State University</p>
+                <p className="text-gray-600 text-sm">Western Mindanao State University (WMSU)</p>
               </motion.div>
 
-              {/* High School */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="border-l-4 pl-4 py-2"
-                style={{ borderLeftColor: colors.light }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h5 className="font-semibold text-gray-900">Senior High School</h5>
-                  <span
-                    className="font-medium text-sm"
-                    style={{ color: colors.primary }}
-                  >
-                    2017-2021
-                  </span>
-                </div>
-                <p
-                  className="font-medium mb-1"
-                  style={{ color: colors.light }}
-                >
-                  ABM Strand Graduate
-                </p>
-                <p className="text-gray-600 text-sm">Accounting, Business & Management</p>
-              </motion.div>
+              {/* Additional Education (conditionally shown) */}
+              <AnimatePresence>
+                {showMoreEducation && (
+                  <>
+                    {/* High School */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -20, height: 0 }}
+                      animate={{ opacity: 1, x: 0, height: 'auto' }}
+                      exit={{ opacity: 0, x: -20, height: 0 }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                      className="border-l-4 pl-4 py-2"
+                      style={{ borderLeftColor: colors.light }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-semibold text-gray-900">Senior High School</h5>
+                        <span
+                          className="font-medium text-sm"
+                          style={{ color: colors.primary }}
+                        >
+                          2017-2021
+                        </span>
+                      </div>
+                      <p
+                        className="font-medium mb-1"
+                        style={{ color: colors.light }}
+                      >
+                        ABM Strand Graduate
+                      </p>
+                      <p className="text-gray-600 text-sm">Accounting, Business & Management</p>
+                    </motion.div>
 
-              {/* Elementary */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="border-l-4 pl-4 py-2"
-                style={{ borderLeftColor: colors.accent }}
+                    {/* Elementary */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -20, height: 0 }}
+                      animate={{ opacity: 1, x: 0, height: 'auto' }}
+                      exit={{ opacity: 0, x: -20, height: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      className="border-l-4 pl-4 py-2"
+                      style={{ borderLeftColor: colors.accent }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-semibold text-gray-900">Elementary Education</h5>
+                        <span
+                          className="font-medium text-sm"
+                          style={{ color: colors.primary }}
+                        >
+                          2009-2015
+                        </span>
+                      </div>
+                      <p
+                        className="font-medium mb-1"
+                        style={{ color: colors.light }}
+                      >
+                        Primary Graduate
+                      </p>
+                      <p className="text-gray-600 text-sm">San Roque Elementary School</p>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+
+              {/* See More/Less Button */}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                onClick={() => setShowMoreEducation(!showMoreEducation)}
+                className="w-full mt-4 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300 border"
+                style={{
+                  color: colors.primary,
+                  borderColor: colors.primary + '40',
+                  backgroundColor: colors.primary + '10'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = colors.primary + '20';
+                  e.target.style.borderColor = colors.primary + '60';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = colors.primary + '10';
+                  e.target.style.borderColor = colors.primary + '40';
+                }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <h5 className="font-semibold text-gray-900">Elementary Education</h5>
-                  <span
-                    className="font-medium text-sm"
-                    style={{ color: colors.primary }}
-                  >
-                    2009-2015
-                  </span>
-                </div>
-                <p
-                  className="font-medium mb-1"
-                  style={{ color: colors.light }}
-                >
-                  Primary Graduate
-                </p>
-                <p className="text-gray-600 text-sm">San Roque Elementary School</p>
-              </motion.div>
+                {showMoreEducation ? 'Show Less' : 'See More'}
+              </motion.button>
             </div>
           </div>
         </motion.div>
@@ -370,9 +511,10 @@ const Personal = () => {
         variants={fadeIn}
         custom={1}
       >
-        <h3 className="text-2xl font-bold mb-6 text-center">Interests & Hobbies</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Passions & Hobbies</h3>
         <div className="space-y-6">
-          {interests.map((interest, index) => (
+          {/* Show first 3 hobbies by default */}
+          {interests.slice(0, 3).map((interest, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -20 }}
@@ -397,6 +539,64 @@ const Personal = () => {
               </div>
             </motion.div>
           ))}
+
+          {/* Additional hobbies (conditionally shown) */}
+          <AnimatePresence>
+            {showMoreHobbies && (
+              <>
+                {interests.slice(3).map((interest, index) => (
+                  <motion.div
+                    key={index + 3}
+                    initial={{ opacity: 0, x: -20, height: 0 }}
+                    animate={{ opacity: 1, x: 0, height: 'auto' }}
+                    exit={{ opacity: 0, x: -20, height: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg transition-colors"
+                    style={{
+                      '&:hover': {
+                        backgroundColor: colors.accent + '20'
+                      }
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.accent + '20'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                  >
+                    <interest.icon
+                      className="w-8 h-8 mt-1 flex-shrink-0"
+                      style={{ color: colors.primary }}
+                    />
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">{interest.name}</h4>
+                      <p className="text-gray-600 text-sm">{interest.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </>
+            )}
+          </AnimatePresence>
+
+          {/* See More/Less Button */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            onClick={() => setShowMoreHobbies(!showMoreHobbies)}
+            className="w-full mt-4 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300 border"
+            style={{
+              color: colors.primary,
+              borderColor: colors.primary + '40',
+              backgroundColor: colors.primary + '10'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = colors.primary + '20';
+              e.target.style.borderColor = colors.primary + '60';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = colors.primary + '10';
+              e.target.style.borderColor = colors.primary + '40';
+            }}
+          >
+            {showMoreHobbies ? 'Show Less' : 'See More'}
+          </motion.button>
         </div>
       </motion.div>
 
@@ -407,7 +607,7 @@ const Personal = () => {
         variants={fadeIn}
         custom={2}
       >
-        <h3 className="text-2xl font-bold mb-6 text-center">Achievements</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Milestones</h3>
         <div className="space-y-6">
           {achievements.map((achievement, index) => (
             <motion.div
@@ -449,7 +649,7 @@ const Personal = () => {
       custom={0}
     >
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold mb-4">Experiences & Stories</h3>
+        <h3 className="text-2xl font-bold mb-4">Personal Journey</h3>
         <p className="text-gray-600">Personal experiences, travels, and insights from my journey</p>
       </div>
 
@@ -703,15 +903,31 @@ const Personal = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative overflow-hidden z-10 !px-4 !py-3 lg:!px-6 lg:!py-3 rounded-lg font-medium transition-all duration-300 text-sm lg:text-base text-center !flex !items-center !justify-center ${
+                  className={`relative overflow-hidden z-10 !px-2 !py-3 sm:!px-4 lg:!px-6 lg:!py-3 rounded-lg font-medium transition-all duration-300 text-xs sm:text-sm lg:text-base text-center !flex !items-center !justify-center ${
                     activeTab === tab.id
                       ? 'btn-primary text-white'
-                      : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-violet-50/80 hover:text-violet-800 hover:border-violet-200 hover:transform hover:translateY(-2px) shadow-md border border-gray-200/50 hover:shadow-lg'
+                      : 'bg-white/20 backdrop-blur-sm text-gray-700 hover:bg-violet-50/30 hover:text-violet-800 hover:border-violet-200 hover:transform hover:translateY(-2px) shadow-md border border-gray-200/50 hover:shadow-lg'
                   }`}
                 >
-                  <tab.icon className="w-5 h-5 mr-2 lg:mr-3 relative z-10" />
-                  <span className="relative z-10 hidden sm:inline">{tab.label}</span>
-                  <span className="relative z-10 sm:hidden">{tab.label.split(' ')[0]}</span>
+                  {/* Show icon only on larger screens */}
+                  <tab.icon className="w-5 h-5 mr-2 lg:mr-3 relative z-10 hidden sm:inline" />
+
+                  {/* Full labels for larger screens */}
+                  <span className="relative z-10 hidden lg:inline text-center">{tab.label}</span>
+
+                  {/* Medium screen labels */}
+                  <span className="relative z-10 hidden sm:inline lg:hidden text-center text-xs">
+                    {tab.id === 'about' ? 'About' :
+                     tab.id === 'interests' ? 'Interests' :
+                     'Experiences'}
+                  </span>
+
+                  {/* Mobile labels - shortest version */}
+                  <span className="relative z-10 sm:hidden text-center text-xs px-1">
+                    {tab.id === 'about' ? 'About' :
+                     tab.id === 'interests' ? 'Interests' :
+                     'Stories'}
+                  </span>
                 </motion.button>
               ))}
             </div>

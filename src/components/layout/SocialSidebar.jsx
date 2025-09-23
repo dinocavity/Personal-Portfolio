@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import useScrollManager from '../../hooks/useScrollManager';
+import { useScroll } from '../../contexts/ScrollContext';
 
 const SocialSidebar = memo(() => {
   const [isVisible, setIsVisible] = useState(false);
@@ -8,7 +8,7 @@ const SocialSidebar = memo(() => {
   const [position, setPosition] = useState({ y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const sidebarRef = useRef(null);
-  const { activeSection } = useScrollManager();
+  const { activeSection } = useScroll();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -81,7 +81,7 @@ const SocialSidebar = memo(() => {
       personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
       blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
-      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
+      footer: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' }     // red: dark → medium → light
     };
     return colors[activeSection] || colors.hero;
   };
@@ -106,20 +106,67 @@ const SocialSidebar = memo(() => {
             initial={{ y: 0, opacity: 1 }}
             style={{ pointerEvents: 'auto' }}
           >
-            {/* Drag handle indicator - larger drag area */}
+            {/* Drag handle indicator */}
             <div
-              className={`w-12 h-8 flex items-center justify-center mb-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center justify-center mb-6 transition-all duration-200 ${
                 isDragging
-                  ? 'bg-gray-200 cursor-grabbing scale-110'
-                  : 'hover:bg-gray-100 cursor-grab'
+                  ? 'cursor-grabbing scale-110'
+                  : 'cursor-grab'
               }`}
               onMouseDown={handleMouseDown}
               style={{ userSelect: 'none' }}
             >
-              <div className="w-6 h-1 bg-gray-400 rounded-full" />
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" className="text-gray-500">
+                <path d="M8 6h8v2H8V6zm0 4h8v2H8v-2zm0 4h8v2H8v-2z"/>
+              </svg>
             </div>
 
             <div className="flex flex-col space-y-6 mb-6" style={{ pointerEvents: 'auto' }}>
+              {/* Resume icon - at the top */}
+              <AnimatePresence>
+                {activeSection !== 'hero' && (
+                  <motion.div
+                    className="relative group"
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  >
+                    <a
+                      href="/marquezcv.pdf"
+                      download
+                      className="text-gray-600 transition-colors duration-300 block"
+                      style={{
+                        '--hover-color': currentColors.primary
+                      }}
+                      onMouseEnter={(e) => {
+                        const colors = getGradientColors(activeSection);
+                        e.target.style.color = colors.primary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.color = '#4B5563'; // text-gray-600
+                      }}
+                      aria-label="Download Resume"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Tooltip */}
+                      <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
+                        Resume
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                      </div>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10,9 9,9 8,9"/>
+                      </svg>
+                    </a>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {socialLinks.map((social) => (
                 <motion.div
                   key={social.icon}
@@ -192,51 +239,6 @@ const SocialSidebar = memo(() => {
                   </a>
                 </motion.div>
               ))}
-
-              {/* Resume icon with smooth animation */}
-              <AnimatePresence>
-                {activeSection !== 'hero' && (
-                  <motion.div
-                    className="relative group"
-                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <a
-                      href="/marquezcv.pdf"
-                      download
-                      className="text-gray-600 transition-colors duration-300 block"
-                      style={{
-                        '--hover-color': currentColors.primary
-                      }}
-                      onMouseEnter={(e) => {
-                        const colors = getGradientColors(activeSection);
-                        e.target.style.color = colors.primary;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.color = '#4B5563'; // text-gray-600
-                      }}
-                      aria-label="Resume"
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {/* Tooltip */}
-                      <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
-                        Resume
-                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
-                      </div>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10,9 9,9 8,9"/>
-                      </svg>
-                    </a>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
             <div className="w-px h-24 bg-gray-300"></div>
           </motion.div>

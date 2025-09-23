@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { useScroll } from '../../contexts/ScrollContext';
 import {
   SiJavascript,
   SiReact,
@@ -19,7 +20,14 @@ import {
   SiBootstrap,
   SiExpress,
   SiDjango,
-  SiTensorflow
+  SiTensorflow,
+  SiLaravel,
+  SiAdobephotoshop,
+  SiCanva,
+  SiFigma,
+  SiWireshark,
+  SiXampp,
+  SiKalilinux
 } from 'react-icons/si';
 import { MdWeb, MdDeveloperMode, MdStorage, MdBuild } from 'react-icons/md';
 
@@ -27,6 +35,22 @@ const Skills = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [activeCategory, setActiveCategory] = useState('frontend');
+  const { activeSection } = useScroll();
+
+  // Get gradient colors to match other components
+  const getGradientColors = (activeSection) => {
+    const colors = {
+      hero: { primary: '#1e3a8a', light: '#3b82f6', accent: '#60a5fa' },      // blue: dark → medium → light
+      skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },    // teal: dark → medium → light
+      projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
+      certifications: { primary: '#ea580c', light: '#f97316', accent: '#fb923c' }, // orange: dark → medium → light
+      personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
+      footer: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' }     // red: dark → medium → light
+    };
+    return colors[activeSection] || colors.skills;
+  };
+
+  const currentColors = getGradientColors(activeSection);
 
   const fadeIn = {
     hidden: { opacity: 0, y: 30 },
@@ -48,6 +72,7 @@ const Skills = () => {
       skills: [
         { name: 'JavaScript', icon: SiJavascript, color: '#F7DF1E', experience: 'Advanced', description: 'Modern ES6+ features and frameworks' },
         { name: 'React.js', icon: SiReact, color: '#61DAFB', experience: 'Advanced', description: 'Hooks, Context API, and component libraries' },
+        { name: 'Shadcn/ui', icon: SiReact, color: '#000000', experience: 'Advanced', description: 'Modern React component library' },
         { name: 'HTML5', icon: SiHtml5, color: '#E34F26', experience: 'Expert', description: 'Semantic markup and accessibility' },
         { name: 'CSS3', icon: SiCss3, color: '#1572B6', experience: 'Advanced', description: 'Flexbox, Grid, and animations' },
         { name: 'Tailwind CSS', icon: SiTailwindcss, color: '#06B6D4', experience: 'Advanced', description: 'Utility-first CSS framework' },
@@ -60,9 +85,10 @@ const Skills = () => {
       skills: [
         { name: 'Node.js', icon: SiNodedotjs, color: '#339933', experience: 'Intermediate', description: 'Server-side JavaScript runtime' },
         { name: 'Express.js', icon: SiExpress, color: '#000000', experience: 'Intermediate', description: 'RESTful APIs and middleware' },
+        { name: 'Laravel', icon: SiLaravel, color: '#FF2D20', experience: 'Beginner', description: 'PHP web application framework' },
         { name: 'PHP', icon: SiPhp, color: '#777BB4', experience: 'Advanced', description: 'Server-side scripting and frameworks' },
         { name: 'Python', icon: SiPython, color: '#3776AB', experience: 'Intermediate', description: 'Web development and data analysis' },
-        { name: 'Django', icon: SiDjango, color: '#092E20', experience: 'Beginner', description: 'Python web framework' }
+        { name: 'Django', icon: SiDjango, color: '#092E20', experience: 'Intermediate', description: 'Python web framework' }
       ]
     },
     database: {
@@ -73,7 +99,8 @@ const Skills = () => {
         { name: 'PostgreSQL', icon: SiPostgresql, color: '#336791', experience: 'Intermediate', description: 'Advanced SQL features' },
         { name: 'MongoDB', icon: SiMongodb, color: '#47A248', experience: 'Beginner', description: 'NoSQL document database' },
         { name: 'Firebase', icon: SiFirebase, color: '#FFCA28', experience: 'Intermediate', description: 'Real-time database and hosting' },
-        { name: 'Supabase', icon: SiSupabase, color: '#3ECF8E', experience: 'Beginner', description: 'Open source Firebase alternative' }
+        { name: 'Supabase', icon: SiSupabase, color: '#3ECF8E', experience: 'Beginner', description: 'Open source Firebase alternative' },
+        { name: 'XAMPP', icon: SiXampp, color: '#FB7A24', experience: 'Advanced', description: 'Local development environment stack' }
       ]
     },
     tools: {
@@ -82,7 +109,12 @@ const Skills = () => {
       skills: [
         { name: 'Git', icon: SiGit, color: '#F05032', experience: 'Advanced', description: 'Version control and collaboration' },
         { name: 'GitHub', icon: SiGithub, color: '#181717', experience: 'Advanced', description: 'Code hosting and project management' },
-        { name: 'TensorFlow', icon: SiTensorflow, color: '#FF6F00', experience: 'Beginner', description: 'Machine learning framework' }
+        { name: 'TensorFlow', icon: SiTensorflow, color: '#FF6F00', experience: 'Beginner', description: 'Machine learning framework' },
+        { name: 'Wireshark', icon: SiWireshark, color: '#1679A7', experience: 'Beginner', description: 'Network protocol analyzer and troubleshooting' },
+        { name: 'Kali Linux', icon: SiKalilinux, color: '#557C94', experience: 'Beginner', description: 'Penetration testing and security auditing platform' },
+        { name: 'Photoshop', icon: SiAdobephotoshop, color: '#31A8FF', experience: 'Intermediate', description: 'Digital image editing and graphic design' },
+        { name: 'Canva', icon: SiCanva, color: '#00C4CC', experience: 'Advanced', description: 'Online design and visual content creation' },
+        { name: 'Figma', icon: SiFigma, color: '#F24E1E', experience: 'Intermediate', description: 'UI/UX design and prototyping tool' }
       ]
     }
   };
@@ -122,7 +154,7 @@ const Skills = () => {
                     className={`relative overflow-hidden z-10 !px-4 !py-3 lg:!px-6 lg:!py-3 rounded-lg font-medium transition-all duration-300 text-sm lg:text-base text-center !flex !items-center !justify-center ${
                       activeCategory === category
                         ? 'btn-primary text-white'
-                        : 'bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-teal-50/80 hover:text-teal-800 hover:border-teal-200 hover:transform hover:translateY(-2px) shadow-md border border-gray-200/50 hover:shadow-lg'
+                        : 'bg-white/5 backdrop-blur-sm text-gray-700 hover:bg-teal-50/10 hover:text-teal-800 hover:border-teal-200 hover:transform hover:translateY(-2px) shadow-md border border-gray-200/50 hover:shadow-lg'
                     }`}
                   >
                     <CategoryIcon className="w-5 h-5 mr-2 lg:mr-3 relative z-10" />
@@ -142,7 +174,7 @@ const Skills = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="bg-white/60 backdrop-blur-lg border border-gray-200/30 rounded-2xl p-4 sm:p-8 shadow-lg"
+              className="bg-white/5 backdrop-blur-lg border border-gray-200/30 rounded-2xl p-4 sm:p-8 shadow-lg"
             >
               <h3 className="text-2xl font-bold text-center mb-8 text-gray-800">
                 {skillCategories[activeCategory].title}
@@ -156,7 +188,7 @@ const Skills = () => {
                     initial="hidden"
                     animate="visible"
                     variants={fadeIn}
-                    className="group p-3 md:p-4 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border border-gray-200/30 rounded-lg hover:border-white/60 hover:shadow-lg transition-all duration-300"
+                    className="group p-3 md:p-4 rounded-lg hover:bg-white/5 transition-colors duration-300"
                   >
                     <div className="flex items-center mb-2 md:mb-3">
                       <div
@@ -211,12 +243,34 @@ const Skills = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="grid grid-cols-2 gap-4 sm:gap-6 mt-8 sm:mt-12"
           >
-            <div className="text-center bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-lg p-4 sm:p-6 shadow-md">
-              <div className="text-2xl sm:text-3xl font-bold text-primary-color mb-2">19+</div>
+            <div
+              className="text-center bg-white/5 backdrop-blur-sm rounded-lg p-4 sm:p-6 shadow-md transition-all duration-300"
+              style={{
+                borderColor: currentColors.light,
+                border: `1px solid ${currentColors.light}30`
+              }}
+            >
+              <div
+                className="text-2xl sm:text-3xl font-bold mb-2 transition-colors duration-300"
+                style={{ color: currentColors.primary }}
+              >
+25+
+              </div>
               <div className="text-gray-600 text-sm sm:text-base">Technologies</div>
             </div>
-            <div className="text-center bg-white/60 backdrop-blur-sm border border-gray-200/30 rounded-lg p-4 sm:p-6 shadow-md">
-              <div className="text-2xl sm:text-3xl font-bold text-primary-color mb-2">15+</div>
+            <div
+              className="text-center bg-white/5 backdrop-blur-sm rounded-lg p-4 sm:p-6 shadow-md transition-all duration-300"
+              style={{
+                borderColor: currentColors.light,
+                border: `1px solid ${currentColors.light}30`
+              }}
+            >
+              <div
+                className="text-2xl sm:text-3xl font-bold mb-2 transition-colors duration-300"
+                style={{ color: currentColors.primary }}
+              >
+                15+
+              </div>
               <div className="text-gray-600 text-sm sm:text-base">Projects Built</div>
             </div>
           </motion.div>

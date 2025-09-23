@@ -1,13 +1,13 @@
 import { useRef, useState, useMemo } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import useScrollManager from '../../hooks/useScrollManager';
+import { useScroll } from '../../contexts/ScrollContext';
 import certifications from '../../data/certifications';
 
 const Certifications = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const { activeSection } = useScrollManager();
+  const { activeSection } = useScroll();
 
   // Modal state for viewing certificates
   const [selectedCertificate, setSelectedCertificate] = useState(null);
@@ -25,9 +25,9 @@ const Certifications = () => {
       skills: { primary: '#0f766e', light: '#14b8a6', accent: '#5eead4' },    // teal: dark → medium → light
       projects: { primary: '#92400e', light: '#f59e0b', accent: '#fbbf24' },  // amber: dark → medium → light
       personal: { primary: '#581c87', light: '#9333ea', accent: '#a855f7' },  // purple: dark → medium → light
-      certifications: { primary: '#059669', light: '#10b981', accent: '#6ee7b7' }, // emerald: dark → medium → light
+      certifications: { primary: '#c2410c', light: '#f97316', accent: '#fb923c' }, // orange: dark → medium → light
       blog: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' },      // red: dark → medium → light
-      footer: { primary: '#065f46', light: '#10b981', accent: '#34d399' }     // emerald: dark → medium → light
+      footer: { primary: '#991b1b', light: '#ef4444', accent: '#f87171' }     // red: dark → medium → light
     };
     return colorMap[activeSection] || colorMap.hero;
   }, [activeSection]);
@@ -200,10 +200,12 @@ const Certifications = () => {
 
             {/* Search Bar */}
             <div className="relative max-w-sm mx-auto md:mx-0">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                <div className="bg-white/80 rounded-full p-1">
+                  <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
               </div>
               <input
                 type="text"
@@ -212,9 +214,9 @@ const Certifications = () => {
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => searchTerm && setShowSuggestions(suggestions.length > 0)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="block w-full pl-12 pr-12 py-2.5 border border-white/20 rounded-xl leading-5 bg-white/10 backdrop-blur-md placeholder-gray-400 text-gray-800 focus:outline-none focus:placeholder-gray-500 focus:ring-2 focus:ring-white/30 focus:border-white/40 sm:text-sm transition-all duration-300 hover:bg-white/15"
+                className="block w-full pl-12 pr-12 py-2.5 border border-white/40 rounded-xl leading-5 bg-white/20 backdrop-blur-md placeholder-gray-500 text-gray-900 focus:outline-none focus:placeholder-gray-600 focus:ring-2 focus:ring-white/50 focus:border-white/60 sm:text-sm transition-all duration-300 hover:bg-white/25 shadow-md"
                 style={{
-                  borderColor: searchTerm ? colors.light + '80' : 'rgba(255, 255, 255, 0.2)',
+                  borderColor: searchTerm ? colors.light + '80' : 'rgba(255, 255, 255, 0.4)',
                   boxShadow: searchTerm ? `0 0 0 2px ${colors.light}40` : 'none'
                 }}
               />

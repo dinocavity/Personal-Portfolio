@@ -1,8 +1,8 @@
 import { useEffect, useRef, memo } from 'react';
-import useScrollManager from '../../hooks/useScrollManager';
+import { useScroll } from '../../contexts/ScrollContext';
 
 const ParticleBackground = memo(() => {
-  const { progress, activeSection } = useScrollManager();
+  const { progress, activeSection } = useScroll();
 
   // Store current activeSection in a ref that gets updated on each render
   const currentActiveSectionRef = useRef(activeSection);
@@ -14,7 +14,7 @@ const ParticleBackground = memo(() => {
       hero: '🔵 Blue',
       skills: '🟢 Teal',
       projects: '🟡 Amber',
-      certifications: '🟢 Emerald',
+      certifications: '🟠 Orange',
       personal: '🟣 Purple',
       footer: '🔴 Red'
     };
@@ -168,7 +168,7 @@ const ParticleBackground = memo(() => {
           hero: { r: 59, g: 130, b: 246 },        // #3b82f6 (blue)
           skills: { r: 20, g: 184, b: 166 },      // #14b8a6 (teal)
           projects: { r: 245, g: 158, b: 11 },    // #f59e0b (amber)
-          certifications: { r: 16, g: 185, b: 129 }, // #10b981 (emerald)
+          certifications: { r: 249, g: 115, b: 22 }, // #f97316 (orange)
           personal: { r: 147, g: 51, b: 234 },    // #9333ea (purple)
           footer: { r: 239, g: 68, b: 68 }        // #ef4444 (red)
         };
@@ -320,7 +320,7 @@ const ParticleBackground = memo(() => {
           hero: { r: 59, g: 130, b: 246 },        // #3b82f6 (blue)
           skills: { r: 20, g: 184, b: 166 },      // #14b8a6 (teal)
           projects: { r: 245, g: 158, b: 11 },    // #f59e0b (amber)
-          certifications: { r: 16, g: 185, b: 129 }, // #10b981 (emerald)
+          certifications: { r: 249, g: 115, b: 22 }, // #f97316 (orange)
           personal: { r: 147, g: 51, b: 234 },    // #9333ea (purple)
           footer: { r: 239, g: 68, b: 68 }        // #ef4444 (red)
         };
@@ -390,9 +390,9 @@ const ParticleBackground = memo(() => {
         hero: { r: 59, g: 130, b: 246 },        // #3b82f6 (blue)
         skills: { r: 20, g: 184, b: 166 },      // #14b8a6 (teal)
         projects: { r: 245, g: 158, b: 11 },    // #f59e0b (amber)
-        certifications: { r: 16, g: 185, b: 129 }, // #10b981 (emerald)
+        certifications: { r: 249, g: 115, b: 22 }, // #f97316 (orange)
         personal: { r: 147, g: 51, b: 234 },    // #9333ea (purple)
-        footer: { r: 16, g: 185, b: 129 }       // #10b981 (emerald)
+        footer: { r: 239, g: 68, b: 68 }        // #ef4444 (red)
       };
 
       // Update target color and interpolate
