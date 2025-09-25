@@ -1,5 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { useScroll } from '../../contexts/ScrollContext';
 import projects from '../../data/projects';
 
@@ -12,6 +13,14 @@ const Projects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+
+  // Modal states
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showVariationsModal, setShowVariationsModal] = useState(false);
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [selectedVariation, setSelectedVariation] = useState(null);
+  const [selectedVariationIndex, setSelectedVariationIndex] = useState(0);
+  const [showVariationModal, setShowVariationModal] = useState(false);
 
   // Get dynamic colors based on active section
   const colors = useMemo(() => {
@@ -129,6 +138,31 @@ const Projects = () => {
   const goToPage = (pageNumber) => {
     setCurrentPage(pageNumber);
     document.getElementById('projects').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Navigation functions for variations
+  const goToNextVariation = () => {
+    if (selectedProject && selectedProject.variations) {
+      const nextIndex = (selectedVariationIndex + 1) % selectedProject.variations.length;
+      setSelectedVariationIndex(nextIndex);
+      setSelectedVariation(selectedProject.variations[nextIndex]);
+    }
+  };
+
+  const goToPreviousVariation = () => {
+    if (selectedProject && selectedProject.variations) {
+      const prevIndex = selectedVariationIndex === 0 ? selectedProject.variations.length - 1 : selectedVariationIndex - 1;
+      setSelectedVariationIndex(prevIndex);
+      setSelectedVariation(selectedProject.variations[prevIndex]);
+    }
+  };
+
+  // Keyboard navigation for variations
+  const handleVariationKeyDown = (e) => {
+    if (!showVariationModal) return;
+    if (e.key === 'Escape') setShowVariationModal(false);
+    if (e.key === 'ArrowRight') goToNextVariation();
+    if (e.key === 'ArrowLeft') goToPreviousVariation();
   };
   
   const container = {
@@ -281,12 +315,13 @@ const Projects = () => {
                 const isProject = item.type === 'project';
                 const isCertification = item.type === 'certification';
                 const itemKey = isProject ? item.id : `cert-${item.title}`;
+                const hasVariations = item.hasVariations && item.variations && item.variations.length > 0;
 
                 return (
                   <motion.div
                     key={itemKey}
                     variants={item}
-                    className={`group relative rounded-lg overflow-hidden backdrop-blur-lg transition-all duration-700 hover:shadow-2xl hover:shadow-gray-500/10 hover:scale-[1.02] hover:-translate-y-1 ${gridClass}`}
+                    className={`group relative rounded-lg overflow-hidden backdrop-blur-lg transition-all duration-700 hover:shadow-2xl hover:shadow-gray-500/10 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer ${gridClass}`}
                     style={{
                       background: `linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.65) 60%, ${colors.light}20 100%)`,
                       borderColor: `${colors.light}60`, // More visible hint of section color
@@ -302,6 +337,15 @@ const Projects = () => {
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = `${colors.light}60`;
                       e.currentTarget.style.boxShadow = `0 0 0 0.5px ${colors.light}20, 0 4px 12px rgba(0,0,0,0.05)`;
+                    }}
+                    onClick={() => {
+                      if (hasVariations) {
+                        setSelectedProject(item);
+                        setShowVariationsModal(true);
+                      } else {
+                        setSelectedProject(item);
+                        setShowProjectModal(true);
+                      }
                     }}
                   >
                     {/* Background Image or Fallback */}
@@ -340,68 +384,143 @@ const Projects = () => {
                     </div>
 
                     {/* Content */}
-                    <div className="relative z-10 p-6 h-full flex flex-col justify-end">
+                    <div className={`relative z-10 h-full flex flex-col justify-end ${
+                      gridClass.includes('col-span-2 row-span-2') ? 'p-4 sm:p-6' : 'p-2 sm:p-3 md:p-4'
+                    }`}>
                       <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                         {/* Issue date for certification or period for experience */}
                         {isCertification && (
-                          <span className="text-gray-300 text-xs font-medium mb-1 block">{item.issueDate}</span>
+                          <span className={`text-gray-300 font-medium mb-1 block ${
+                            gridClass.includes('col-span-2 row-span-2') ? 'text-xs sm:text-sm' : 'text-xs'
+                          }`}>{item.issueDate}</span>
                         )}
 
-                        <h3 className="text-white font-bold text-lg mb-2 line-clamp-2">{item.title}</h3>
+                        <h3 className={`text-white font-bold mb-2 line-clamp-2 ${
+                          gridClass.includes('col-span-2 row-span-2') ? 'text-lg sm:text-xl md:text-2xl' :
+                          gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-sm sm:text-base md:text-lg' :
+                          'text-xs sm:text-sm md:text-base'
+                        }`}>{item.title}</h3>
 
                         {/* Issuer for certification */}
                         {isCertification && (
-                          <p className="text-green-200 text-sm mb-2 font-medium">{item.issuer}</p>
+                          <p className={`text-green-200 mb-2 font-medium ${
+                            gridClass.includes('col-span-2 row-span-2') ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'
+                          }`}>{item.issuer}</p>
                         )}
 
-                        <p className="text-gray-200 text-sm mb-4 line-clamp-2 opacity-90">{item.description}</p>
+                        <p className={`text-gray-200 mb-3 opacity-90 ${
+                          gridClass.includes('col-span-2 row-span-2') ? 'text-sm sm:text-base line-clamp-3' :
+                          gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs sm:text-sm line-clamp-2' :
+                          'text-xs line-clamp-2'
+                        }`}>{item.description}</p>
 
-                        {/* Technologies/Skills - show only on larger boxes */}
-                        {(index % 6 === 0 || index % 6 === 1) && (item.technologies || item.skills) && (
-                          <div className="flex flex-wrap gap-1 mb-4">
-                            {(item.technologies || item.skills).slice(0, 3).map((tech, i) => (
+                        {/* Technologies/Skills - always show but adjust count */}
+                        {(item.technologies || item.skills) && (
+                          <div className={`flex flex-wrap gap-1 mb-3 ${
+                            gridClass.includes('col-span-2 row-span-2') ? 'mb-4' : 'mb-3'
+                          }`}>
+                            {(item.technologies || item.skills).slice(0,
+                              gridClass.includes('col-span-2 row-span-2') ? 5 :
+                              gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 3 : 2
+                            ).map((tech, i) => (
                               <span
                                 key={i}
-                                className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium"
+                                className={`bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md font-medium ${
+                                  gridClass.includes('col-span-2 row-span-2') ? 'text-xs sm:text-sm' :
+                                  gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs' :
+                                  'text-xs'
+                                }`}
                               >
                                 {tech}
                               </span>
                             ))}
-                            {(item.technologies || item.skills).length > 3 && (
-                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium">
-                                +{(item.technologies || item.skills).length - 3}
+                            {(item.technologies || item.skills).length > (
+                              gridClass.includes('col-span-2 row-span-2') ? 5 :
+                              gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 3 : 2
+                            ) && (
+                              <span className={`bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md font-medium ${
+                                gridClass.includes('col-span-2 row-span-2') ? 'text-xs sm:text-sm' :
+                                gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs' :
+                                'text-xs'
+                              }`}>
+                                +{(item.technologies || item.skills).length - (
+                                  gridClass.includes('col-span-2 row-span-2') ? 5 :
+                                  gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 3 : 2
+                                )}
                               </span>
                             )}
                           </div>
                         )}
 
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100">
-                          {item.liveUrl && (
-                            <a
-                              href={item.liveUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                              {isProject ? 'Live' : 'View'}
-                            </a>
-                          )}
-                          {item.repoUrl && (
-                            <a
-                              href={item.repoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" className="mr-1" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                              </svg>
-                              Code
-                            </a>
+                        {/* Action Buttons - show on all sizes but adjust styling */}
+                        <div className={`flex gap-1.5 ${
+                          gridClass.includes('col-span-2') || gridClass.includes('row-span-2')
+                            ? 'opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100'
+                            : 'opacity-90 group-hover:opacity-100'
+                        }`}>
+                            {hasVariations ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProject(item);
+                                  setShowVariationsModal(true);
+                                }}
+                                className={`flex items-center bg-white/20 backdrop-blur-sm text-white rounded-lg font-medium hover:bg-white/30 transition-colors ${
+                                  gridClass.includes('col-span-2 row-span-2') ? 'px-3 py-1.5 text-sm' :
+                                  gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'px-2 py-1 text-xs' :
+                                  'px-2 py-1 text-xs'
+                                }`}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className={`mr-1 fill-none ${
+                                  gridClass.includes('col-span-2 row-span-2') ? 'h-3 w-3' : 'h-2.5 w-2.5'
+                                }`} viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                {gridClass.includes('col-span-2 row-span-2') ? `Templates (${item.variations.length})` : 'Templates'}
+                              </button>
+                          ) : (
+                            <>
+                              {item.liveUrl && (
+                                <a
+                                  href={item.liveUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className={`flex items-center bg-white/20 backdrop-blur-sm text-white rounded-lg font-medium hover:bg-white/30 transition-colors ${
+                                    gridClass.includes('col-span-2 row-span-2') ? 'px-3 py-1.5 text-sm' :
+                                    gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'px-2 py-1 text-xs' :
+                                    'px-2 py-1 text-xs'
+                                  }`}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className={`mr-1 fill-none ${
+                                  gridClass.includes('col-span-2 row-span-2') ? 'h-3 w-3' : 'h-2.5 w-2.5'
+                                }`} viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                  {isProject ? 'Live' : 'View'}
+                                </a>
+                              )}
+                              {item.repoUrl && (
+                                <a
+                                  href={item.repoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className={`flex items-center bg-white/20 backdrop-blur-sm text-white rounded-lg font-medium hover:bg-white/30 transition-colors ${
+                                    gridClass.includes('col-span-2 row-span-2') ? 'px-3 py-1.5 text-sm' :
+                                    gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'px-2 py-1 text-xs' :
+                                    'px-2 py-1 text-xs'
+                                  }`}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className={`mr-1 fill-current ${
+                                    gridClass.includes('col-span-2 row-span-2') ? 'w-3 h-3' : 'w-2.5 h-2.5'
+                                  }`} viewBox="0 0 24 24">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                  </svg>
+                                  Code
+                                </a>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -523,6 +642,406 @@ const Projects = () => {
                 </button>
               </div>
             </motion.div>
+          )}
+
+          {/* Variations Modal */}
+          {showVariationsModal && selectedProject && createPortal(
+            <AnimatePresence>
+              {showVariationsModal && selectedProject && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[9999]"
+                onClick={() => setShowVariationsModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  transition={{ type: "spring", duration: 0.3, bounce: 0.1 }}
+                  className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden shadow-2xl flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowVariationsModal(false)}
+                    className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl p-2.5 sm:p-3 transition-all duration-300 hover:scale-105 border border-white/30"
+                    style={{ backgroundColor: colors.primary + '40' }}
+                  >
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                  {/* Header */}
+                  <div className="p-3 sm:p-4 bg-white/10 backdrop-blur-md border-b border-white/20 flex-shrink-0">
+                    <h3 className="text-sm sm:text-lg font-bold text-white mb-1">{selectedProject.title}</h3>
+                    <p className="text-white/90 text-xs sm:text-sm">Choose a template variation</p>
+                  </div>
+
+                  {/* Variations Grid */}
+                  <div className="flex-1 p-3 sm:p-4 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                      {selectedProject.variations?.map((variation, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-white/10 backdrop-blur-md rounded-lg overflow-hidden border border-white/20 hover:border-white/30 hover:bg-white/15 transition-all duration-300 cursor-pointer"
+                          onClick={() => {
+                            setSelectedVariation(variation);
+                            setSelectedVariationIndex(index);
+                            setShowVariationModal(true);
+                          }}
+                        >
+                          {/* Variation Image */}
+                          <div className="h-32 sm:h-40 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                            {variation.image && !variation.image.includes('placehold') ? (
+                              <img
+                                src={variation.image}
+                                alt={variation.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Variation Info */}
+                          <div className="p-3 sm:p-4">
+                            <h4 className="text-sm sm:text-base font-bold text-white mb-2">{variation.name}</h4>
+                            <p className="text-white/80 text-xs sm:text-sm mb-3 line-clamp-2">{variation.description}</p>
+
+                          {/* Technologies */}
+                          {variation.technologies && (
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {variation.technologies.slice(0, 4).map((tech, i) => (
+                                <span
+                                  key={i}
+                                  className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full border border-white/30"
+                                >
+                                  {tech}
+                                </span>
+                              ))}
+                              {variation.technologies.length > 4 && (
+                                <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full border border-white/30">
+                                  +{variation.technologies.length - 4}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-2">
+                            {variation.liveUrl && (
+                              <a
+                                href={variation.liveUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center justify-center flex-1 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105 border border-white/30"
+                                style={{ backgroundColor: colors.primary + '60' }}
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Live
+                              </a>
+                            )}
+                            {variation.repoUrl && (
+                              <a
+                                href={variation.repoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center justify-center flex-1 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105 border border-white/30"
+                                style={{ backgroundColor: colors.accent + '60' }}
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Code
+                              </a>
+                            )}
+                            {!variation.liveUrl && !variation.repoUrl && (
+                              <div className="flex-1 bg-white/10 backdrop-blur-sm text-white/60 px-3 py-2 rounded-lg text-xs font-medium text-center border border-white/20">
+                                Soon
+                              </div>
+                            )}
+                          </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
+
+          {/* Project Detail Modal */}
+          {showProjectModal && selectedProject && createPortal(
+            <AnimatePresence>
+              {showProjectModal && selectedProject && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[9999]"
+                onClick={() => setShowProjectModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  transition={{ type: "spring", duration: 0.3, bounce: 0.1 }}
+                  className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden shadow-2xl flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowProjectModal(false)}
+                    className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl p-2.5 sm:p-3 transition-all duration-300 hover:scale-105 border border-white/30"
+                    style={{ backgroundColor: colors.primary + '40' }}
+                  >
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                  {/* Project Image */}
+                  <div className="flex-1 p-3 sm:p-4">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 h-full flex items-center justify-center">
+                      {selectedProject.image && !selectedProject.image.includes('placehold') ? (
+                        <img
+                          src={selectedProject.image}
+                          alt={selectedProject.title}
+                          className="w-full h-full max-h-[300px] sm:max-h-[350px] object-contain rounded"
+                        />
+                      ) : (
+                        <div className="w-full h-full max-h-[300px] sm:max-h-[350px] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Project Info */}
+                  <div className="p-3 sm:p-4 bg-white/10 backdrop-blur-md border-t border-white/20 flex-shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm sm:text-lg font-bold text-white mb-1 truncate">{selectedProject.title}</h3>
+                        <p className="text-xs text-white/80 mb-2 line-clamp-2">{selectedProject.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedProject.technologies?.slice(0, 6).map((tech, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full border border-white/30"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                          {selectedProject.technologies && selectedProject.technologies.length > 6 && (
+                            <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full border border-white/30">
+                              +{selectedProject.technologies.length - 6}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row sm:flex-col gap-2 sm:min-w-[100px]">
+                        {selectedProject.liveUrl && (
+                          <a
+                            href={selectedProject.liveUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105 border border-white/30 flex-1 sm:flex-none"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ backgroundColor: colors.primary + '60' }}
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Live
+                          </a>
+                        )}
+                        {selectedProject.repoUrl && (
+                          <a
+                            href={selectedProject.repoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105 border border-white/30 flex-1 sm:flex-none"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ backgroundColor: colors.accent + '60' }}
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Code
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
+
+          {/* Variation Detail Modal */}
+          {showVariationModal && selectedVariation && createPortal(
+            <AnimatePresence>
+            {showVariationModal && selectedVariation && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[9999]"
+                onClick={() => setShowVariationModal(false)}
+                onKeyDown={handleVariationKeyDown}
+                tabIndex={0}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  transition={{ type: "spring", duration: 0.3, bounce: 0.1 }}
+                  className="relative w-full max-w-4xl max-h-[90vh] bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden shadow-2xl flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowVariationModal(false)}
+                    className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl p-2.5 sm:p-3 transition-all duration-300 hover:scale-105 border border-white/30"
+                    style={{ backgroundColor: colors.primary + '40' }}
+                  >
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                  {/* Navigation Buttons */}
+                  {selectedProject && selectedProject.variations && selectedProject.variations.length > 1 && (
+                    <>
+                      <button
+                        onClick={goToPreviousVariation}
+                        className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-lg p-2 transition-all duration-300 hover:scale-105 border border-white/30"
+                        style={{ backgroundColor: colors.primary + '40' }}
+                      >
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+
+                      <button
+                        onClick={goToNextVariation}
+                        className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-lg p-2 transition-all duration-300 hover:scale-105 border border-white/30"
+                        style={{ backgroundColor: colors.primary + '40' }}
+                      >
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+
+                  {/* Variation Image */}
+                  <div className="flex-1 p-3 sm:p-4">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 h-full flex items-center justify-center">
+                      {selectedVariation.image && !selectedVariation.image.includes('placehold') ? (
+                        <img
+                          src={selectedVariation.image}
+                          alt={selectedVariation.name}
+                          className="w-full h-full max-h-[300px] sm:max-h-[350px] object-contain rounded"
+                        />
+                      ) : (
+                        <div className="w-full h-full max-h-[300px] sm:max-h-[350px] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Variation Info */}
+                  <div className="p-3 sm:p-4 bg-white/10 backdrop-blur-md border-t border-white/20 flex-shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm sm:text-lg font-bold text-white mb-1 truncate">{selectedVariation.name}</h3>
+                        <p className="text-xs text-white/80 mb-2 line-clamp-2">{selectedVariation.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedVariation.technologies?.slice(0, 6).map((tech, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full border border-white/30"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                          {selectedVariation.technologies && selectedVariation.technologies.length > 6 && (
+                            <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full border border-white/30">
+                              +{selectedVariation.technologies.length - 6}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row sm:flex-col gap-2 sm:min-w-[100px]">
+                        {selectedVariation.liveUrl && (
+                          <a
+                            href={selectedVariation.liveUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105 border border-white/30 flex-1 sm:flex-none"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ backgroundColor: colors.primary + '60' }}
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Live Demo
+                          </a>
+                        )}
+                        {selectedVariation.repoUrl && (
+                          <a
+                            href={selectedVariation.repoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 hover:scale-105 border border-white/30 flex-1 sm:flex-none"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ backgroundColor: colors.accent + '60' }}
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Source Code
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+            </AnimatePresence>,
+            document.body
           )}
         </div>
       </div>

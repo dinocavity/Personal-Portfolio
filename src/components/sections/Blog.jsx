@@ -202,7 +202,6 @@ const Blog = () => {
                     }
                   }
 
-                  const isLarge = index % 6 === 0;
 
                   return (
                     <motion.div
@@ -225,53 +224,74 @@ const Blog = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
                         </div>
 
-                        {/* Content */}
-                        <div className="relative z-10 p-6 h-full flex flex-col justify-end">
+                        {/* Content - responsive to bento box size */}
+                        <div className={`relative z-10 h-full flex flex-col justify-end ${
+                          gridClass.includes('col-span-2') || gridClass.includes('row-span-2') ? 'p-4 sm:p-5 md:p-6' : 'p-3 sm:p-4'
+                        }`}>
                           <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                            {/* Meta info */}
-                            <div className="flex items-center text-gray-300 text-xs mb-2 opacity-90">
+                            {/* Meta info - responsive sizing */}
+                            <div className={`flex items-center text-gray-300 mb-2 opacity-90 ${
+                              gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 'text-xs sm:text-sm' :
+                              gridClass.includes('col-span-2') || gridClass.includes('row-span-2') ? 'text-xs' :
+                              'text-xs'
+                            }`}>
                               <span>{post.date}</span>
                               <span className="mx-2">•</span>
                               <span>{post.readTime} min read</span>
                             </div>
 
-                            <h3 className={`text-white font-bold mb-2 line-clamp-2 group-hover:text-blue-200 transition-colors ${isLarge ? 'text-xl' : 'text-lg'}`}>
+                            {/* Title - responsive to bento box size */}
+                            <h3 className={`text-white font-bold mb-2 line-clamp-2 group-hover:text-blue-200 transition-colors ${
+                              gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 'text-lg sm:text-xl md:text-2xl' :
+                              gridClass.includes('col-span-2') || gridClass.includes('row-span-2') ? 'text-base sm:text-lg md:text-xl' :
+                              'text-sm sm:text-base md:text-lg'
+                            }`}>
                               {post.title}
                             </h3>
 
-                            {/* Show excerpt only on larger boxes */}
-                            {isLarge && (
-                              <p className="text-gray-200 text-sm mb-4 line-clamp-3 opacity-90">
-                                {post.excerpt}
-                              </p>
+                            {/* Show excerpt - adjust lines based on box size */}
+                            <p className={`text-gray-200 mb-2 opacity-90 ${
+                              gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 'text-sm sm:text-base line-clamp-3' :
+                              gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs sm:text-sm line-clamp-2' :
+                              'text-xs line-clamp-1'
+                            }`}>
+                              {post.excerpt}
+                            </p>
+
+                            {/* Tags - show based on box size */}
+                            {(gridClass.includes('col-span-2') || gridClass.includes('row-span-2')) && (
+                              <div className="flex flex-wrap gap-1 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-100">
+                                {post.tags.slice(0, gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 3 : 2).map((tag, i) => (
+                                  <span
+                                    key={i}
+                                    className={`bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md font-medium ${
+                                      gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 'text-xs' : 'text-xs'
+                                    }`}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                                {post.tags.length > (gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 3 : 2) && (
+                                  <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md font-medium">
+                                    +{post.tags.length - (gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 3 : 2)}
+                                  </span>
+                                )}
+                              </div>
                             )}
 
-                            {/* Tags - show fewer on smaller boxes */}
-                            <div className="flex flex-wrap gap-1 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-100">
-                              {post.tags.slice(0, isLarge ? 3 : 2).map((tag, i) => (
-                                <span
-                                  key={i}
-                                  className="bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md font-medium"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                              {post.tags.length > (isLarge ? 3 : 2) && (
-                                <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md font-medium">
-                                  +{post.tags.length - (isLarge ? 3 : 2)}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Read more indicator */}
-                            <div className="mt-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-150">
-                              <div className="flex items-center text-white text-sm">
-                                <span className="mr-2">Read More</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
+                            {/* Read more indicator - only on larger boxes */}
+                            {(gridClass.includes('col-span-2') || gridClass.includes('row-span-2')) && (
+                              <div className="mt-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-150">
+                                <div className={`flex items-center text-white ${
+                                  gridClass.includes('col-span-2') && gridClass.includes('row-span-2') ? 'text-sm' : 'text-xs'
+                                }`}>
+                                  <span className="mr-2">Read More</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                  </svg>
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         </div>
                       </Link>

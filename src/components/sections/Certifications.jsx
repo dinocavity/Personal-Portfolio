@@ -371,51 +371,77 @@ const Certifications = () => {
                       {/* Content positioned at bottom */}
                       <div className="relative flex-1 flex flex-col justify-end p-3 sm:p-4 md:p-5 lg:p-6">
                         <div className="space-y-1 sm:space-y-2">
-                          {/* Title */}
-                          <h3 className="text-white font-bold text-xs sm:text-sm md:text-base lg:text-lg leading-tight line-clamp-2">
+                          {/* Title - responsive to bento box size */}
+                          <h3 className={`text-white font-bold leading-tight line-clamp-2 ${
+                            gridClass.includes('col-span-2 row-span-2') ? 'text-sm sm:text-base md:text-lg lg:text-xl' :
+                            gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs sm:text-sm md:text-base lg:text-lg' :
+                            'text-xs sm:text-xs md:text-sm lg:text-base'
+                          }`}>
                             {item.title}
                           </h3>
 
-                          {/* Issuer */}
-                          <p className="text-white/90 text-xs sm:text-sm font-medium">
+                          {/* Issuer - responsive to bento box size */}
+                          <p className={`text-white/90 font-medium ${
+                            gridClass.includes('col-span-2 row-span-2') ? 'text-xs sm:text-sm md:text-base' :
+                            gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs sm:text-xs md:text-sm' :
+                            'text-xs sm:text-xs md:text-xs'
+                          }`}>
                             {item.issuer}
                           </p>
 
-                          {/* Tags */}
+                          {/* Tags - always show but adjust count */}
                           <div className="flex flex-wrap gap-1 mt-2">
-                            <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium">
+                            <span className={`bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md font-medium ${
+                              gridClass.includes('col-span-2 row-span-2') ? 'text-xs' :
+                              gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs' :
+                              'text-xs'
+                            }`}>
                               {item.issueDate}
                             </span>
                             {item.featured && (
-                              <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium">
+                              <span className={`bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-md font-medium ${
+                                gridClass.includes('col-span-2 row-span-2') ? 'text-xs' :
+                                gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'text-xs' :
+                                'text-xs'
+                              }`}>
                                 Featured
                               </span>
                             )}
                           </div>
 
-                          {/* Action buttons */}
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            <a
-                              href={item.pdfUrl || item.image}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <span>View Certificate</span>
-                            </a>
-                            {item.verificationUrl && (
+                          {/* Action buttons - show on all sizes but adjust styling */}
+                          <div className={`flex flex-wrap gap-1.5 mt-2 ${
+                            !(gridClass.includes('col-span-2') || gridClass.includes('row-span-2')) ? 'opacity-80 group-hover:opacity-100' : ''
+                          }`}>
                               <a
-                                href={item.verificationUrl}
+                                href={item.pdfUrl || item.image}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
+                                className={`flex items-center bg-white/20 backdrop-blur-sm text-white rounded-lg font-medium hover:bg-white/30 transition-colors ${
+                                  gridClass.includes('col-span-2 row-span-2') ? 'px-3 py-1.5 text-sm' :
+                                  gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'px-2 py-1 text-xs' :
+                                  'px-1.5 py-0.5 text-xs'
+                                }`}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <span>Verify</span>
+                                <span>View</span>
                               </a>
-                            )}
-                          </div>
+                              {item.verificationUrl && (
+                                <a
+                                  href={item.verificationUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center bg-white/20 backdrop-blur-sm text-white rounded-lg font-medium hover:bg-white/30 transition-colors ${
+                                    gridClass.includes('col-span-2 row-span-2') ? 'px-3 py-1.5 text-sm' :
+                                    gridClass.includes('row-span-2') || gridClass.includes('col-span-2') ? 'px-2 py-1 text-xs' :
+                                    'px-1.5 py-0.5 text-xs'
+                                  }`}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <span>Verify</span>
+                                </a>
+                              )}
+                            </div>
                         </div>
                       </div>
                     </div>

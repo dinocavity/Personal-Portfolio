@@ -11,33 +11,104 @@ const projects = [
     },
     {
       id: 2,
-      title: 'Pokedex',
-      description: 'A comprehensive Pokedex application that allows users to browse, search, and view detailed information about Pokemon. Features include filtering by type, generation, and abilities.',
+      title: 'Pokemon Battle',
+      description: 'Pokemon-themed applications with different gameplay experiences and features.',
       image: '/assets/images/projects/pokedex.jpg',
       technologies: ['React', 'Pokemon API', 'Tailwind CSS', 'Redux'],
       featured: true,
-      liveUrl: 'https://example.com/pokedex',
-      repoUrl: 'https://github.com/dinocavity/pokemon-battle.git'
+      hasVariations: true,
+      variations: [
+        {
+          name: 'Pokedex Browser',
+          description: 'A comprehensive Pokedex application that allows users to browse, search, and view detailed information about Pokemon. Features include filtering by type, generation, and abilities.',
+          image: '/assets/projects/pokemon-pokedex.jpg',
+          liveUrl: 'https://example.com/pokedex',
+          repoUrl: 'https://github.com/dinocavity/pokemon-pokedex.git',
+          technologies: ['React', 'Pokemon API', 'Tailwind CSS', 'Redux']
+        },
+        {
+          name: 'Pokemon Battle Arena',
+          description: 'Turn-based Pokemon battle simulator with authentic game mechanics, type effectiveness, and strategic combat system.',
+          image: '/assets/projects/pokemon-battle.jpg',
+          liveUrl: 'https://pokemon-battle-arena.netlify.app',
+          repoUrl: 'https://github.com/dinocavity/pokemon-battle.git',
+          technologies: ['React', 'Pokemon API', 'Framer Motion', 'Context API']
+        },
+        {
+          name: 'Pokemon Team Builder',
+          description: 'Strategic team building tool for competitive Pokemon battles with stat calculations and team synergy analysis.',
+          image: '/assets/projects/pokemon-team-builder.jpg',
+          repoUrl: 'https://github.com/dinocavity/pokemon-team-builder.git',
+          technologies: ['React', 'Pokemon API', 'Chart.js', 'Local Storage']
+        }
+      ]
     },
     {
       id: 3,
-      title: 'Todo App',
-      description: 'A modern task management application with features like task categorization, priority levels, due dates, and progress tracking. Built with a clean and intuitive interface.',
+      title: 'Todo Applications',
+      description: 'Task management applications with different approaches to productivity and organization.',
       image: '/assets/projects/todo-app.png',
       technologies: ['React', 'Node.js', 'MongoDB', 'Express', 'Tailwind CSS'],
       featured: true,
-      liveUrl: 'todo-marquez-alonzo.netlify.app',
-      repoUrl: 'https://github.com/dinocavity/TODO..git'
+      hasVariations: true,
+      variations: [
+        {
+          name: 'Classic Todo',
+          description: 'A clean and simple todo application with essential task management features like adding, editing, and deleting tasks.',
+          image: '/assets/projects/todo-classic.jpg',
+          liveUrl: 'https://todo-marquez-alonzo.netlify.app',
+          repoUrl: 'https://github.com/dinocavity/TODO.git',
+          technologies: ['React', 'Local Storage', 'Tailwind CSS']
+        },
+        {
+          name: 'Advanced Todo Manager',
+          description: 'Feature-rich task management with categories, priority levels, due dates, progress tracking, and team collaboration.',
+          image: '/assets/projects/todo-advanced.jpg',
+          liveUrl: 'https://advanced-todo-manager.netlify.app',
+          repoUrl: 'https://github.com/dinocavity/advanced-todo.git',
+          technologies: ['React', 'Node.js', 'MongoDB', 'Express', 'Socket.io']
+        },
+        {
+          name: 'Kanban Todo Board',
+          description: 'Trello-style kanban board for visual task management with drag-and-drop functionality and workflow stages.',
+          image: '/assets/projects/todo-kanban.jpg',
+          liveUrl: 'https://kanban-todo-board.netlify.app',
+          technologies: ['React', 'React DnD', 'Tailwind CSS', 'Firebase']
+        }
+      ]
     },
     {
       id: 4,
-      title: 'Portfolio Website',
-      description: 'A personal portfolio website showcasing my projects, skills, and professional experience. Built with modern web technologies and featuring smooth animations.',
+      title: 'Portfolio Templates',
+      description: 'Personal portfolio websites with different design approaches and feature sets.',
       image: '/assets/projects/portfolio.png',
       technologies: ['React', 'Vite', 'Tailwind CSS', 'Framer Motion'],
       featured: true,
-      liveUrl: 'marquezportfolio.netlify.app',
-      repoUrl: 'https://github.com/dinocavity/final-portfolio.git'
+      hasVariations: true,
+      variations: [
+        {
+          name: 'Modern Portfolio',
+          description: 'Contemporary portfolio design with smooth animations, dynamic theming, and interactive components.',
+          image: '/assets/projects/portfolio-modern.jpg',
+          liveUrl: 'https://marquezportfolio.netlify.app',
+          repoUrl: 'https://github.com/dinocavity/final-portfolio.git',
+          technologies: ['React', 'Vite', 'Tailwind CSS', 'Framer Motion']
+        },
+        {
+          name: 'Minimalist Portfolio',
+          description: 'Clean, minimal design focusing on typography and content with subtle animations and white space.',
+          image: '/assets/projects/portfolio-minimalist.jpg',
+          liveUrl: 'https://minimalist-portfolio-template.netlify.app',
+          technologies: ['React', 'Styled Components', 'AOS Animation']
+        },
+        {
+          name: 'Developer Portfolio',
+          description: 'Technical portfolio with integrated blog, code snippets, GitHub integration, and developer-focused features.',
+          image: '/assets/projects/portfolio-developer.jpg',
+          repoUrl: 'https://github.com/dinocavity/developer-portfolio.git',
+          technologies: ['Next.js', 'MDX', 'GitHub API', 'Prisma', 'PostgreSQL']
+        }
+      ]
     },
     {
       id: 5,
