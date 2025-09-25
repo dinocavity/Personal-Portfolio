@@ -320,7 +320,23 @@ const Certifications = () => {
                   <motion.div
                     key={item.title}
                     variants={item}
-                    className={`group relative rounded-lg overflow-hidden bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border border-gray-200/30 hover:border-white/60 transition-all duration-700 hover:shadow-2xl hover:shadow-gray-500/10 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer ${gridClass}`}
+                    className={`group relative rounded-lg overflow-hidden backdrop-blur-lg transition-all duration-700 hover:shadow-2xl hover:shadow-gray-500/10 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer ${gridClass}`}
+                    style={{
+                      background: `linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.65) 60%, ${colors.light}20 100%)`,
+                      borderColor: `${colors.light}60`, // More visible hint of section color
+                      borderWidth: '1.5px',
+                      borderStyle: 'solid',
+                      boxShadow: `0 0 0 0.5px ${colors.light}20, 0 4px 12px rgba(0,0,0,0.05)`,
+                      '--hover-border': `${colors.light}90`
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = `${colors.light}90`;
+                      e.currentTarget.style.boxShadow = `0 0 0 1px ${colors.light}30, 0 8px 20px rgba(0,0,0,0.08)`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = `${colors.light}60`;
+                      e.currentTarget.style.boxShadow = `0 0 0 0.5px ${colors.light}20, 0 4px 12px rgba(0,0,0,0.05)`;
+                    }}
                     onClick={() => openModal(item)}
                   >
                     {/* Background gradient overlay for each certification */}
